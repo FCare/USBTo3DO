@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.13)
 include(pico-sdk/pico_sdk_init.cmake)
 
+set(FAMILY rp2040)
+set(BOARD pico_sdk)
+include(${PICO_SDK_PATH}/lib/tinyusb/hw/bsp/${FAMILY}/family.cmake)
+
+set(CFG_TUSB_CONFIG_FILE "include/tusb_config.h")
+
 project(USB_LCD_Pico)
 
 pico_sdk_init()
@@ -23,13 +29,14 @@ src/main.c
 src/LCD_0in96_test.c
 src/ImageData.c
 src/USB_Host.c
+src/hid_app.c
 )
 
 # enable usb output, disable uart output
 pico_enable_stdio_usb(USB_LCD_Pico 1)
-pico_enable_stdio_uart(USB_LCD_Pico 1)
+pico_enable_stdio_uart(USB_LCD_Pico 0)
 
 # create map/bin/hex/uf2 file etc.
 pico_add_extra_outputs(USB_LCD_Pico)
 
-target_link_libraries(USB_LCD_Pico LCD GUI Fonts Config pico_stdlib hardware_spi)
+target_link_libraries(USB_LCD_Pico LCD GUI Fonts Config pico_stdlib pico_multicore hardware_spi hardware_dma tinyusb_board tinyusb_host)
