@@ -1,19 +1,20 @@
-﻿#include "LCD_Test.h"   //Examples
+#include "USB.h" //USB Setup
+#include "3DO.h" //3DO Setup
+
+#include <stdio.h>
+#include "pico/stdlib.h"
 
 int main(void)
 {
-    //OLED
-    // OLED_1in3_C_test();
-    //OLED_2in23_test();
+	USB_Host_init();
+	_3DO_init();
+	TU_LOG1("3DO to USB\r\n");
 
+	while(1) {
+		// LCD_loop();
+		USB_Host_loop();
+	}
 
-    //LCD
-	LCD_0in96_test();
-    //LCD_1in14_test();
-    //LCD_1in14_V2_test();
-	//LCD_1in3_test();
-    //LCD_1in44_test();
-    //LCD_1in8_test();
-    //LCD_2in_test();
-    return 0;
+	// LCD_0in96_deinit();
+  return 0;
 }
