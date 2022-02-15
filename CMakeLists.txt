@@ -22,6 +22,7 @@ add_executable(USB_LCD_Pico
 src/main.c
 src/LCD_0in96_test.c
 src/ImageData.c
+src/USB_Host.c
 )
 
 # enable usb output, disable uart output
