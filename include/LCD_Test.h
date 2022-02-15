@@ -7,5 +7,6 @@
 #include "Debug.h"
 #include <stdlib.h> // malloc() free()
 
-int LCD_0in96_test(void);
+int LCD_0in96_init(void);
+int LCD_0in96_deinit(void);
 #endif

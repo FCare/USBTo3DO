@@ -4,13 +4,13 @@
 int main(void)
 {
 
-	LCD_0in96_test();
+	LCD_0in96_init();
 	USB_Host_init();
-
 
 	while(1) {
 		USB_Host_loop();
 	}
 
-    return 0;
+	LCD_0in96_deinit();
+  return 0;
 }
