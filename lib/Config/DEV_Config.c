@@ -1,12 +1,12 @@
 /*****************************************************************************
 * | File      	:   DEV_Config.c
-* | Author      :   
+* | Author      :
 * | Function    :   Hardware underlying interface
 * | Info        :
 *----------------
 * |	This version:   V1.0
 * | Date        :   2021-03-16
-* | Info        :   
+* | Info        :
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documnetation files (the "Software"), to deal
@@ -29,7 +29,6 @@
 #include "DEV_Config.h"
 
 #define SPI_PORT spi1
-#define I2C_PORT spi1
 
 uint slice_num;
 /**
@@ -56,31 +55,6 @@ void DEV_SPI_WriteByte(uint8_t Value)
 void DEV_SPI_Write_nByte(uint8_t pData[], uint32_t Len)
 {
     spi_write_blocking(SPI_PORT, pData, Len);
-}
-
-
-
-/**
- * I2C
-**/
-
-void DEV_I2C_Write(uint8_t addr, uint8_t reg, uint8_t Value)
-{
-    uint8_t data[2] = {reg, Value};
-    i2c_write_blocking(i2c1, addr, data, 2, false);
-}
-
-void DEV_I2C_Write_nByte(uint8_t addr, uint8_t *pData, uint32_t Len)
-{
-    i2c_write_blocking(i2c1, addr, pData, Len, false);
-}
-
-uint8_t DEV_I2C_ReadByte(uint8_t addr, uint8_t reg)
-{
-    uint8_t buf;
-    i2c_write_blocking(i2c1,addr,&reg,1,true);
-    i2c_read_blocking(i2c1,addr,&buf,1,false);
-    return buf;
 }
 
 /**
@@ -127,8 +101,8 @@ void DEV_GPIO_Init(void)
     DEV_GPIO_Mode(LCD_DC_PIN, 1);
     DEV_GPIO_Mode(LCD_CS_PIN, 1);
     DEV_GPIO_Mode(LCD_BL_PIN, 1);
-    
-    
+
+
     DEV_GPIO_Mode(LCD_CS_PIN, 1);
     DEV_GPIO_Mode(LCD_BL_PIN, 1);
 
@@ -143,32 +117,15 @@ Info:
 ******************************************************************************/
 UBYTE DEV_Module_Init(void)
 {
-    stdio_init_all();   
+    stdio_init_all();
     // SPI Config
     spi_init(SPI_PORT, 10000 * 1000);
     gpio_set_function(LCD_CLK_PIN, GPIO_FUNC_SPI);
     gpio_set_function(LCD_MOSI_PIN, GPIO_FUNC_SPI);
-    
+
     // GPIO Config
     DEV_GPIO_Init();
-    
-    
-    // PWM Config
-    gpio_set_function(LCD_BL_PIN, GPIO_FUNC_PWM);
-    slice_num = pwm_gpio_to_slice_num(LCD_BL_PIN);
-    pwm_set_wrap(slice_num, 100);
-    pwm_set_chan_level(slice_num, PWM_CHAN_B, 1);
-    pwm_set_clkdiv(slice_num,50);
-    pwm_set_enabled(slice_num, true);
-    
-    
-    //I2C Config
-    i2c_init(i2c1,300*1000);
-    gpio_set_function(LCD_SDA_PIN,GPIO_FUNC_I2C);
-    gpio_set_function(LCD_SCL_PIN,GPIO_FUNC_I2C);
-    gpio_pull_up(LCD_SDA_PIN);
-    gpio_pull_up(LCD_SCL_PIN);
-    
+
     printf("DEV_Module_Init OK \r\n");
     return 0;
 }
@@ -179,9 +136,6 @@ void DEV_SET_PWM(uint8_t Value){
     }else {
         pwm_set_chan_level(slice_num, PWM_CHAN_B, Value);
     }
-        
-    
-    
 }
 
 /******************************************************************************

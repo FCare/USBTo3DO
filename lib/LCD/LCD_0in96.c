@@ -80,12 +80,12 @@ parameter:
 ******************************************************************************/
 static void LCD_0IN96_InitReg(void)
 {
-  LCD_0IN96_SendCommand(0x11);//Sleep exit 
+  LCD_0IN96_SendCommand(0x11);//Sleep exit
 	DEV_Delay_ms (120);
-	LCD_0IN96_SendCommand(0x21); 
-	LCD_0IN96_SendCommand(0x21); 
+	LCD_0IN96_SendCommand(0x21);
+	LCD_0IN96_SendCommand(0x21);
 
-	LCD_0IN96_SendCommand(0xB1); 
+	LCD_0IN96_SendCommand(0xB1);
 	LCD_0IN96_SendData_8Bit(0x05);
 	LCD_0IN96_SendData_8Bit(0x3A);
 	LCD_0IN96_SendData_8Bit(0x3A);
@@ -95,8 +95,8 @@ static void LCD_0IN96_InitReg(void)
 	LCD_0IN96_SendData_8Bit(0x3A);
 	LCD_0IN96_SendData_8Bit(0x3A);
 
-	LCD_0IN96_SendCommand(0xB3); 
-	LCD_0IN96_SendData_8Bit(0x05);  
+	LCD_0IN96_SendCommand(0xB3);
+	LCD_0IN96_SendData_8Bit(0x05);
 	LCD_0IN96_SendData_8Bit(0x3A);
 	LCD_0IN96_SendData_8Bit(0x3A);
 	LCD_0IN96_SendData_8Bit(0x05);
@@ -120,14 +120,14 @@ static void LCD_0IN96_InitReg(void)
 
 	LCD_0IN96_SendCommand(0xC3);
 	LCD_0IN96_SendData_8Bit(0x8D);
-	LCD_0IN96_SendData_8Bit(0x6A);   
+	LCD_0IN96_SendData_8Bit(0x6A);
 
 	LCD_0IN96_SendCommand(0xC4);
-	LCD_0IN96_SendData_8Bit(0x8D); 
-	LCD_0IN96_SendData_8Bit(0xEE); 
+	LCD_0IN96_SendData_8Bit(0x8D);
+	LCD_0IN96_SendData_8Bit(0xEE);
 
 	LCD_0IN96_SendCommand(0xC5);  /*VCOM*/
-	LCD_0IN96_SendData_8Bit(0x0E);    
+	LCD_0IN96_SendData_8Bit(0x0E);
 
 	LCD_0IN96_SendCommand(0xE0);
 	LCD_0IN96_SendData_8Bit(0x10);
@@ -165,7 +165,7 @@ static void LCD_0IN96_InitReg(void)
 	LCD_0IN96_SendData_8Bit(0x0E);
 	LCD_0IN96_SendData_8Bit(0x10);
 
-	LCD_0IN96_SendCommand(0x3A); 
+	LCD_0IN96_SendCommand(0x3A);
 	LCD_0IN96_SendData_8Bit(0x05);
 
 	LCD_0IN96_SendCommand(0x36);
@@ -183,13 +183,13 @@ void LCD_0IN96_Init(UBYTE Scan_dir)
 {
     DEV_SET_PWM(90);
     LCD_0IN96_Reset();
-	
-    LCD_0IN96.HEIGHT	= LCD_0IN96_HEIGHT;       
+
+    LCD_0IN96.HEIGHT	= LCD_0IN96_HEIGHT;
     LCD_0IN96.WIDTH   = LCD_0IN96_WIDTH;
-	
+
     //Set the initialization register
     LCD_0IN96_InitReg();
-	
+
 }
 
 /********************************************************************************
@@ -206,7 +206,7 @@ void LCD_0IN96_SetWindows(UWORD Xstart, UWORD Ystart, UWORD Xend, UWORD Yend)
 	Xend = Xend + 1;
 	Ystart = Ystart + 26;
 	Yend = Yend+26;
-	
+
 	LCD_0IN96_SendCommand(0x2a);
 	LCD_0IN96_SendData_8Bit(Xstart >> 8);
 	LCD_0IN96_SendData_8Bit(Xstart);
@@ -230,20 +230,20 @@ void LCD_0IN96_Clear(UWORD Color)
 {
     UWORD j,i;
     UWORD Image[LCD_0IN96.WIDTH*LCD_0IN96.HEIGHT];
-    
+
     Color = ((Color<<8)&0xff00)|(Color>>8);
-   
+
     for (j = 0; j < LCD_0IN96.HEIGHT*LCD_0IN96.WIDTH; j++) {
         Image[j] = Color;
     }
-    
+
     LCD_0IN96_SetWindows(0, 0, LCD_0IN96.WIDTH-1, LCD_0IN96.HEIGHT-1);
     DEV_Digital_Write(LCD_DC_PIN, 1);
     DEV_Digital_Write(LCD_CS_PIN, 0);
-	
+
     // for(j = 0; j < LCD_0IN96.WIDTH*LCD_0IN96.HEIGHT; j++){
-        // LCD_0IN96_SendData_16Bit(Image[j]);	
-		
+        // LCD_0IN96_SendData_16Bit(Image[j]);
+
 	for(j = 0; j < LCD_0IN96.HEIGHT; j++){
         DEV_SPI_Write_nByte((uint8_t *)&Image[j*LCD_0IN96.WIDTH], LCD_0IN96.WIDTH*2);
     }
@@ -260,12 +260,12 @@ void LCD_0IN96_Display(UWORD *Image)
     LCD_0IN96_SetWindows(0, 0, LCD_0IN96.WIDTH-1, LCD_0IN96.HEIGHT-1);
     DEV_Digital_Write(LCD_DC_PIN, 1);
  //   DEV_Digital_Write(LCD_CS_PIN, 0);
-	
+
     for (j = 0; j < LCD_0IN96.HEIGHT; j++) {
         DEV_SPI_Write_nByte((uint8_t *)&Image[j*LCD_0IN96.WIDTH], LCD_0IN96.WIDTH*2);
-		
+
 	// for(j = 0; j < LCD_0IN96.WIDTH*LCD_0IN96.HEIGHT; j++){
-        // LCD_0IN96_SendData_16Bit(Image[j]);		
+        // LCD_0IN96_SendData_16Bit(Image[j]);
     }
 //    DEV_Digital_Write(LCD_CS_PIN, 1);
     //LCD_0IN96_SendCommand(0x29);
@@ -296,7 +296,7 @@ void LCD_0IN96_DisplayPoint(UWORD X, UWORD Y, UWORD Color)
 void  Handler_0IN96_LCD(int signo)
 {
     //System Exit
-    printf("\r\nHandler:Program stop\r\n");     
+    printf("\r\nHandler:Program stop\r\n");
     DEV_Module_Exit();
 	exit(0);
 }
