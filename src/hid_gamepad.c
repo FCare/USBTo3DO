@@ -149,8 +149,6 @@ void hid_app_task(void)
 // Note: if report descriptor length > CFG_TUH_ENUMERATION_BUFSIZE, it will be skipped
 // therefore report_desc = NULL, desc_len = 0
 
-extern void DRAW_LCD(void);
-
 void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
 {
   uint16_t vid, pid;
@@ -159,7 +157,6 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
   printf("HID device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
   printf("VID = %04x, PID = %04x\r\n", vid, pid);
 
-  DRAW_LCD();
   // Sony DualShock 4 [CUH-ZCT2x]
   if ( is_sony_ds4(dev_addr) )
   {
@@ -177,23 +174,6 @@ void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance)
 {
   printf("HID device address = %d, instance = %d is unmounted\r\n", dev_addr, instance);
 
-}
-
-void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
-{
-  printf("VENDOR device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
-  if ( is_Xinput_controller(dev_addr) ) {
-    printf("X-Pad compatible detected\r\n");
-  }
-  if ( !tuh_vendor_receive_report(dev_addr, instance) )
-  {
-    printf("Error: cannot request to receive report\r\n");
-  }
-}
-
-void tuh_vendor_umount_cb(uint8_t dev_addr, uint8_t instance)
-{
-  printf("VENDOR device address = %d, instance = %d is unmounted\r\n", dev_addr, instance);
 }
 
 // check if different than 2
@@ -280,18 +260,6 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
 
   // continue to request to receive report
   if ( !tuh_hid_receive_report(dev_addr, instance) )
-  {
-    printf("Error: cannot request to receive report\r\n");
-  }
-}
-
-void tuh_vendor_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len)
-{
-printf("Report Received :!\r\n");
-for (int i=0; i< len; i++) printf("0x%x ", report[i]);
-printf("\r\n");
-  // continue to request to receive report
-  if ( !tuh_vendor_receive_report(dev_addr, instance) )
   {
     printf("Error: cannot request to receive report\r\n");
   }
