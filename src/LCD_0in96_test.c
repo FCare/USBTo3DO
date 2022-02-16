@@ -35,6 +35,7 @@ static UWORD *BlackImage;
 static void drawImage(void) {
   Paint_DrawImage(gImage_0inch96_1,0,0,160,80);
   LCD_0IN96_Display(BlackImage);
+  DEV_SET_PWM(100);//Set the backlight max:100
 }
 
 static void drawText(void) {
@@ -62,6 +63,10 @@ static void drawText(void) {
     /*3.Refresh the picture in RAM to LCD*/
 
     LCD_0IN96_Display(BlackImage);
+}
+
+void DRAW_LCD(void) {
+  drawImage();
 }
 
 bool reserved_addr(uint8_t addr) {
@@ -95,8 +100,15 @@ int LCD_0in96_init(void)
     Paint_SetRotate(ROTATE_0);
     Paint_Clear(WHITE);
 
+    // DRAW_LCD();
+
     LCD_0IN96_Display(BlackImage);
 }
+
+void LCD_loop() {
+  // LCD_0IN96_Display(BlackImage);
+}
+
 int LCD_0in96_deinit(void)
 {
     /* Module Exit */

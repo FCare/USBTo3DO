@@ -33,8 +33,8 @@ src/hid_app.c
 )
 
 # enable usb output, disable uart output
-pico_enable_stdio_usb(USB_LCD_Pico 1)
-pico_enable_stdio_uart(USB_LCD_Pico 0)
+# pico_enable_stdio_usb(USB_LCD_Pico 1)
+pico_enable_stdio_uart(USB_LCD_Pico 1)
 
 # create map/bin/hex/uf2 file etc.
 pico_add_extra_outputs(USB_LCD_Pico)

@@ -9,4 +9,5 @@
 
 int LCD_0in96_init(void);
 int LCD_0in96_deinit(void);
+void LCD_loop(void);
 #endif

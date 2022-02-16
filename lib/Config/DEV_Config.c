@@ -123,6 +123,14 @@ UBYTE DEV_Module_Init(void)
     gpio_set_function(LCD_CLK_PIN, GPIO_FUNC_SPI);
     gpio_set_function(LCD_MOSI_PIN, GPIO_FUNC_SPI);
 
+    //Ensure Backlight is on
+    gpio_set_function(25, GPIO_FUNC_PWM);
+    uint slice_num = pwm_gpio_to_slice_num(25);
+    pwm_set_wrap(slice_num, 100);
+    // pwm_set_chan_level(slice_num, PWM_CHAN_A, 1);
+    pwm_set_chan_level(slice_num, PWM_CHAN_B, 50);
+    pwm_set_enabled(slice_num, true);
+
     // GPIO Config
     DEV_GPIO_Init();
 

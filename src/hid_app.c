@@ -61,6 +61,9 @@
   - Rumble Many devices provide force-feedback features. But are mostly just simple rumble motors.
  */
 
+ // 046d:c21d Logitech, Inc. F310 Gamepad [XInput Mode]
+ // 045e:028e Microsoft Corp. Xbox360 Controller => 8bitdo M30 seen as xBox controller
+
 // Sony DS4 report layout detail https://www.psdevwiki.com/ps4/DS4-USB
 typedef struct TU_ATTR_PACKED
 {
@@ -111,11 +114,20 @@ static inline bool is_sony_ds4(uint8_t dev_addr)
   uint16_t vid, pid;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
 
-  return ( (vid == 0x054c && (pid == 0x09cc || pid == 0x05c4)) // Sony DualShock4 
-           || (vid == 0x0f0d && pid == 0x005e)                 // Hori FC4 
-           || (vid == 0x0f0d && pid == 0x00ee)                 // Hori PS4 Mini (PS4-099U) 
+  return ( (vid == 0x054c && (pid == 0x09cc || pid == 0x05c4)) // Sony DualShock4
+           || (vid == 0x0f0d && pid == 0x005e)                 // Hori FC4
+           || (vid == 0x0f0d && pid == 0x00ee)                 // Hori PS4 Mini (PS4-099U)
            || (vid == 0x1f4f && pid == 0x1002)                 // ASW GG xrd controller
          );
+}
+
+static inline bool is_Xinput_controller(uint8_t dev_addr)
+{
+  uint16_t vid, pid;
+  tuh_vid_pid_get(dev_addr, &vid, &pid);
+  return ( (vid == 0x046d && pid == 0xc21d) //046d:c21d Logitech, Inc. F310 Gamepad
+          ||  (vid == 0x045e && pid == 0x028e) //045e:028e 8bitDo - M30 seen as Xbox360 controller
+        );
 }
 
 //--------------------------------------------------------------------+
@@ -136,6 +148,9 @@ void hid_app_task(void)
 // can be used to parse common/simple enough descriptor.
 // Note: if report descriptor length > CFG_TUH_ENUMERATION_BUFSIZE, it will be skipped
 // therefore report_desc = NULL, desc_len = 0
+
+extern void DRAW_LCD(void);
+
 void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
 {
   uint16_t vid, pid;
@@ -144,6 +159,7 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
   printf("HID device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
   printf("VID = %04x, PID = %04x\r\n", vid, pid);
 
+  DRAW_LCD();
   // Sony DualShock 4 [CUH-ZCT2x]
   if ( is_sony_ds4(dev_addr) )
   {
@@ -161,6 +177,23 @@ void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance)
 {
   printf("HID device address = %d, instance = %d is unmounted\r\n", dev_addr, instance);
 
+}
+
+void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
+{
+  printf("VENDOR device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
+  if ( is_Xinput_controller(dev_addr) ) {
+    printf("X-Pad compatible detected\r\n");
+  }
+  if ( !tuh_vendor_receive_report(dev_addr, instance) )
+  {
+    printf("Error: cannot request to receive report\r\n");
+  }
+}
+
+void tuh_vendor_umount_cb(uint8_t dev_addr, uint8_t instance)
+{
+  printf("VENDOR device address = %d, instance = %d is unmounted\r\n", dev_addr, instance);
 }
 
 // check if different than 2
@@ -247,6 +280,18 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
 
   // continue to request to receive report
   if ( !tuh_hid_receive_report(dev_addr, instance) )
+  {
+    printf("Error: cannot request to receive report\r\n");
+  }
+}
+
+void tuh_vendor_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len)
+{
+printf("Report Received :!\r\n");
+for (int i=0; i< len; i++) printf("0x%x ", report[i]);
+printf("\r\n");
+  // continue to request to receive report
+  if ( !tuh_vendor_receive_report(dev_addr, instance) )
   {
     printf("Error: cannot request to receive report\r\n");
   }
