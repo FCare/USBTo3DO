@@ -3,11 +3,15 @@ include(pico-sdk/pico_sdk_init.cmake)
 
 set(FAMILY rp2040)
 set(BOARD pico_sdk)
-include(${PICO_SDK_PATH}/lib/tinyusb/hw/bsp/${FAMILY}/family.cmake)
+set(PICO_TINYUSB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tinyusb")
+include(${PICO_TINYUSB_PATH}/hw/bsp/${FAMILY}/family.cmake)
 
 set(CFG_TUSB_CONFIG_FILE "include/tusb_config.h")
 
+
 project(USB_LCD_Pico)
+
+add_definitions(-DPICO_TINYUSB_PATH=${PICO_TINYUSB_PATH})
 
 pico_sdk_init()
 
