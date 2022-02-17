@@ -4,6 +4,9 @@ include(pico-sdk/pico_sdk_init.cmake)
 set(FAMILY rp2040)
 set(BOARD pico_sdk)
 set(PICO_TINYUSB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tinyusb")
+
+set(PICO_BOARD waveshare_rp2040_lcd_0.96)
+
 include(${PICO_TINYUSB_PATH}/hw/bsp/${FAMILY}/family.cmake)
 
 set(CFG_TUSB_CONFIG_FILE "include/tusb_config.h")
