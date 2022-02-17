@@ -108,6 +108,50 @@ typedef struct TU_ATTR_PACKED
 
 } sony_ds4_report_t;
 
+
+typedef struct TU_ATTR_PACKED
+{
+  uint8_t x, y, z, rz; // joystick
+
+  struct {
+    uint8_t dpad   : 4;
+    uint8_t west   : 1;
+    uint8_t south  : 1;
+    uint8_t east   : 1;
+    uint8_t north  : 1;
+  };
+
+  struct {
+    uint8_t tl     : 1;
+    uint8_t tr     : 1;
+    uint8_t zl     : 1;
+    uint8_t zr     : 1;
+    uint8_t mode   : 1;
+    uint8_t option : 1;
+    uint8_t l3     : 1;
+    uint8_t r3     : 1;
+  };
+
+  struct {
+    uint8_t ps      : 1; // playstation button
+    uint8_t tpad    : 1; // track pad click
+    uint8_t counter : 6; // +1 each report
+  };
+
+  // comment out since not used by this example
+  // uint8_t l2_trigger; // 0 released, 0xff fully pressed
+  // uint8_t r2_trigger; // as above
+
+  //  uint16_t timestamp;
+  //  uint8_t  battery;
+  //
+  //  int16_t gyro[3];  // x, y, z;
+  //  int16_t accel[3]; // x, y, z
+
+  // there is still lots more info
+
+} gamepad_hid_report_t;
+
 // check if device is Sony DualShock 4
 static inline bool is_sony_ds4(uint8_t dev_addr)
 {
@@ -121,12 +165,11 @@ static inline bool is_sony_ds4(uint8_t dev_addr)
          );
 }
 
-static inline bool is_Xinput_controller(uint8_t dev_addr)
+static inline bool is_supported_controller(uint8_t dev_addr)
 {
   uint16_t vid, pid;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
-  return ( (vid == 0x046d && pid == 0xc21d) //046d:c21d Logitech, Inc. F310 Gamepad
-          ||  (vid == 0x045e && pid == 0x028e) //045e:028e 8bitDo - M30 seen as Xbox360 controller
+  return ( (vid == 0x046d && pid == 0xc216) //046d:c21d Logitech, Inc. F310 Gamepad - DirectInput Mode
         );
 }
 
@@ -158,10 +201,11 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
   printf("VID = %04x, PID = %04x\r\n", vid, pid);
 
   // Sony DualShock 4 [CUH-ZCT2x]
-  if ( is_sony_ds4(dev_addr) )
+  if ( is_sony_ds4(dev_addr) || is_supported_controller(dev_addr))
   {
     // request to receive report
     // tuh_hid_report_received_cb() will be invoked when report is available
+    printf("Request a report \r\n");
     if ( !tuh_hid_receive_report(dev_addr, instance) )
     {
       printf("Error: cannot request to receive report\r\n");
@@ -250,12 +294,26 @@ void process_sony_ds4(uint8_t const* report, uint16_t len)
   }
 }
 
+void process_hid(uint8_t const* report, uint16_t len) {
+  printf("Report : ");
+  for (int i=0; i< len; i++) {
+    printf("0x%x ", report[i]);
+  }
+  printf("\r\n");
+}
+
 // Invoked when received report from device via interrupt endpoint
 void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len)
 {
+  printf("HID report received\r\n");
   if ( is_sony_ds4(dev_addr) )
   {
     process_sony_ds4(report, len);
+  }
+
+  if (is_supported_controller(dev_addr))
+  {
+    process_hid(report, len);
   }
 
   // continue to request to receive report
