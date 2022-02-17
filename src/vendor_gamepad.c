@@ -26,24 +26,154 @@
 #include "bsp/board.h"
 #include "tusb.h"
 
+//Code is made for only one USB port. Will not work in case of HUB plugged
+
+
  // 046d:c21d Logitech, Inc. F310 Gamepad [XInput Mode]
  // 045e:028e Microsoft Corp. Xbox360 Controller => 8bitdo M30 seen as xBox controller
 
+ typedef struct
+ {
+  int16_t ABS_X;
+  int16_t ABS_Y;
+  int16_t ABS_RX;
+  int16_t ABS_RY;
+  uint8_t BTN_TL2;
+  uint8_t BTN_TR2;
+  int8_t ABS_Z;
+  int8_t ABS_RZ;
+  uint8_t BTN_TRIGGER_HAPPY1;
+  uint8_t BTN_TRIGGER_HAPPY2;
+  uint8_t BTN_TRIGGER_HAPPY3;
+  uint8_t BTN_TRIGGER_HAPPY4;
+  uint8_t ABS_HAT0X;
+  uint8_t ABS_HAT0Y;
+  uint8_t BTN_START;
+  uint8_t BTN_SELECT;
+  uint8_t BTN_THUMBL;
+  uint8_t BTN_THUMBR;
+  uint8_t BTN_A;
+  uint8_t BTN_B;
+  uint8_t BTN_X;
+  uint8_t BTN_Y;
 
-static inline bool is_Xinput_controller(uint8_t dev_addr)
+  uint8_t BTN_MODE;
+  uint8_t BTN_NORTH;
+  uint8_t BTN_SOUTH;
+  uint8_t BTN_WEST;
+  uint8_t BTN_EAST;
+  uint8_t BTN_TR;
+  uint8_t BTN_TL;
+
+  int8_t BTN_C;
+  int8_t BTN_Z;
+} xbox360_report;
+
+
+typedef struct {
+  uint16_t : 5;
+  uint16_t up : 1;
+  uint16_t down : 1;
+  uint16_t left : 1;
+  uint16_t right : 1;
+  uint16_t X : 1;
+  uint16_t P : 1;
+  uint16_t A : 1;
+  uint16_t B : 1;
+  uint16_t C : 1;
+  uint16_t L : 1;
+  uint16_t R : 1;
+} _3do_report;
+
+typedef _3do_report (*mapper)(xbox360_report);
+
+typedef struct {
+   uint16_t vid;
+   uint16_t pid;
+   mapper mapper;
+
+ } mapping_3do;
+
+static _3do_report map_8bitDo(xbox360_report report);
+
+#define NB_GAMEPAD_SUPPORTED 1
+static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
+  //045e:028e 8bitDo - M30 seen as Xbox360 controller
+  {0x045e, 0x028e, map_8bitDo}
+};
+
+
+static _3do_report map_8bitDo(xbox360_report report) {
+  _3do_report result;
+  result.up = (report.BTN_Z > 0)?1:0;
+  result.down = (report.BTN_Z < 0)?1:0;
+  result.left = (report.BTN_C < 0)?1:0;
+  result.right = (report.BTN_C > 0)?1:0;
+  result.X = report.BTN_START;
+  result.P = report.BTN_SELECT | report.BTN_SELECT | report.BTN_WEST;
+  result.A = report.BTN_SOUTH;
+  result.B = report.BTN_EAST;
+  result.C = (report.ABS_RZ != 0)?1:0;
+  result.L = report.BTN_NORTH | report.BTN_TL;
+  result.R = ((report.ABS_Z != 0)?1:0) | report.BTN_TR;
+}
+
+static inline bool is_xbox360_controller(uint8_t dev_addr)
 {
   uint16_t vid, pid;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
   return ( (vid == 0x046d && pid == 0xc21d) //046d:c21d Logitech, Inc. F310 Gamepad
-          ||  (vid == 0x045e && pid == 0x028e) //045e:028e 8bitDo - M30 seen as Xbox360 controller
+          ||  (vid == 0x045e && pid == 0x028e)
         );
+}
+
+static void handle_xbox360_report(uint8_t const* report, uint16_t len) {
+  xbox360_report status;
+
+  status.ABS_X = *((int16_t*) (report + 12));
+  status.ABS_Y = *((int16_t*) (report + 14));
+  status.ABS_RX = *((int16_t*) (report + 16));
+  status.ABS_RY = *((int16_t*) (report + 18));
+
+  status.BTN_TL2 = report[10];
+  status.BTN_TR2 = report[11];
+  status.ABS_Z = report[10];
+  status.ABS_RZ = report[11];
+
+  status.BTN_TRIGGER_HAPPY1 = (report[2]>>2) & 0x1;
+  status.BTN_TRIGGER_HAPPY2 = (report[2]>>3) & 0x1;
+  status.BTN_TRIGGER_HAPPY3 = (report[2]>>0) & 0x1;
+  status.BTN_TRIGGER_HAPPY4 = (report[2]>>1) & 0x1;
+  status.ABS_HAT0X = !!(report[2] & 0x08) - !!(report[2] & 0x04);
+  status.ABS_HAT0Y = !!(report[2] & 0x02) - !!(report[2] & 0x01);
+
+  status.BTN_START = (report[2]>>4) & 0x1;
+  status.BTN_SELECT = (report[2]>>5) & 0x1;
+  status.BTN_THUMBL = (report[2]>>6) & 0x1;
+  status.BTN_THUMBR = (report[2]>>7) & 0x1;
+
+  status.BTN_A = report[4];
+  status.BTN_B = report[5];
+  status.BTN_X = report[6];
+  status.BTN_Y = report[7];
+
+  status.BTN_C = report[8];
+  status.BTN_Z = report[9];
+
+  status.BTN_TL = (report[3]>>0) & 0x1;
+  status.BTN_TR = (report[3]>>1) & 0x1;
+  status.BTN_MODE = (report[3]>>2) & 0x1;
+  status.BTN_SOUTH = (report[3]>>4) & 0x1;
+  status.BTN_EAST = (report[3]>>5) & 0x1;
+  status.BTN_NORTH = (report[3]>>6) & 0x1;
+  status.BTN_WEST = (report[3]>>7) & 0x1;
 }
 
 void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
 {
   printf("VENDOR device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
-  if ( is_Xinput_controller(dev_addr) ) {
-    printf("X-Pad compatible detected\r\n");
+  if ( is_xbox360_controller(dev_addr) ) {
+    printf("Xbox360 compatible detected\r\n");
   }
   if ( !tuh_vendor_receive_report(dev_addr, instance) )
   {
@@ -61,6 +191,10 @@ void tuh_vendor_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t c
 printf("Report Received :!\r\n");
 for (int i=0; i< len; i++) printf("0x%x ", report[i]);
 printf("\r\n");
+
+if ( is_xbox360_controller(dev_addr) )  handle_xbox360_report(report, len);
+
+
   // continue to request to receive report
   if ( !tuh_vendor_receive_report(dev_addr, instance) )
   {
