@@ -38,6 +38,7 @@ src/ImageData.c
 src/USB_Host.c
 src/hid_gamepad.c
 src/vendor_gamepad.c
+src/3do_interface.c
 )
 
 # enable usb output, disable uart output

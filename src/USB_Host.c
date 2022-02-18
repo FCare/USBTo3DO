@@ -29,11 +29,3 @@ void USB_Host_loop()
   hid_app_task();
 #endif
 }
-
-void USB_Host_set_key_up_cb(key_cb key_up_cb){
-
-}
-
-void USB_Host_set_key_down_cb(key_cb key_up_cb){
-
-}

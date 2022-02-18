@@ -167,9 +167,10 @@ static inline bool is_sony_ds4(uint8_t dev_addr)
 
 static inline bool is_supported_controller(uint8_t dev_addr)
 {
+  return true;
   uint16_t vid, pid;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
-  return ( (vid == 0x046d && pid == 0xc216) //046d:c21d Logitech, Inc. F310 Gamepad - DirectInput Mode
+  return ( (vid == 0x0079 && pid == 0x0011) //0079:0011 DragonRise Inc. Gamepad
         );
 }
 
@@ -205,7 +206,7 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
   {
     // request to receive report
     // tuh_hid_report_received_cb() will be invoked when report is available
-    printf("Request a report \r\n");
+    TU_LOG2("Request a report \r\n");
     if ( !tuh_hid_receive_report(dev_addr, instance) )
     {
       printf("Error: cannot request to receive report\r\n");
@@ -295,17 +296,17 @@ void process_sony_ds4(uint8_t const* report, uint16_t len)
 }
 
 void process_hid(uint8_t const* report, uint16_t len) {
-  printf("Report : ");
+  TU_LOG1("Report : ");
   for (int i=0; i< len; i++) {
-    printf("0x%x ", report[i]);
+    TU_LOG1("0x%x ", report[i]);
   }
-  printf("\r\n");
+  TU_LOG1("\r\n");
 }
 
 // Invoked when received report from device via interrupt endpoint
 void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len)
 {
-  printf("HID report received\r\n");
+  TU_LOG1("HID report received\r\n");
   if ( is_sony_ds4(dev_addr) )
   {
     process_sony_ds4(report, len);
