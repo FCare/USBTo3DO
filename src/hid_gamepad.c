@@ -26,6 +26,8 @@
 #include "bsp/board.h"
 #include "tusb.h"
 
+#include "3do_interface.h"
+
 /* From https://www.kernel.org/doc/html/latest/input/gamepad.html
           ____________________________              __
          / [__ZL__]          [__ZR__] \               |

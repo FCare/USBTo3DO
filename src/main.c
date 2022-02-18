@@ -8,13 +8,13 @@ int main(void)
 {
 	USB_Host_init();
 	interface_3do_init();
-	LCD_0in96_init();
+	printf("3DO to USB\r\n");
 
 	while(1) {
-		LCD_loop();
+		// LCD_loop();
 		USB_Host_loop();
 	}
 
-	LCD_0in96_deinit();
+	// LCD_0in96_deinit();
   return 0;
 }

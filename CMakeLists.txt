@@ -5,7 +5,7 @@ set(FAMILY rp2040)
 set(BOARD pico_sdk)
 set(PICO_TINYUSB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tinyusb")
 
-set(PICO_BOARD waveshare_rp2040_lcd_0.96)
+set(PICO_BOARD waveshare_rp2040_zero)
 
 include(${PICO_TINYUSB_PATH}/hw/bsp/${FAMILY}/family.cmake)
 

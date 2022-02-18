@@ -26,6 +26,8 @@
 #include "bsp/board.h"
 #include "tusb.h"
 
+#include "3do_interface.h"
+
 //Code is made for only one USB port. Will not work in case of HUB plugged
 
 
@@ -55,7 +57,6 @@
   uint8_t BTN_A;
   uint8_t BTN_B;
   uint8_t BTN_X;
-  uint8_t BTN_Y;
 
   uint8_t BTN_MODE;
   uint8_t BTN_NORTH;
@@ -65,36 +66,14 @@
   uint8_t BTN_TR;
   uint8_t BTN_TL;
 
+  int8_t BTN_Y;
   int8_t BTN_C;
   int8_t BTN_Z;
 } xbox360_report;
 
+static _3do_report map_8bitDo(void* report_p);
 
-typedef struct {
-  uint16_t : 5;
-  uint16_t up : 1;
-  uint16_t down : 1;
-  uint16_t left : 1;
-  uint16_t right : 1;
-  uint16_t X : 1;
-  uint16_t P : 1;
-  uint16_t A : 1;
-  uint16_t B : 1;
-  uint16_t C : 1;
-  uint16_t L : 1;
-  uint16_t R : 1;
-} _3do_report;
-
-typedef _3do_report (*mapper)(xbox360_report);
-
-typedef struct {
-   uint16_t vid;
-   uint16_t pid;
-   mapper mapper;
-
- } mapping_3do;
-
-static _3do_report map_8bitDo(xbox360_report report);
+static mapping_3do *currentMapping = NULL;
 
 #define NB_GAMEPAD_SUPPORTED 1
 static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
@@ -103,19 +82,24 @@ static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
 };
 
 
-static _3do_report map_8bitDo(xbox360_report report) {
+static _3do_report map_8bitDo(void *report_p) {
+  xbox360_report* report = (xbox360_report *)report_p;
   _3do_report result;
-  result.up = (report.BTN_Z > 0)?1:0;
-  result.down = (report.BTN_Z < 0)?1:0;
-  result.left = (report.BTN_C < 0)?1:0;
-  result.right = (report.BTN_C > 0)?1:0;
-  result.X = report.BTN_START;
-  result.P = report.BTN_SELECT | report.BTN_SELECT | report.BTN_WEST;
-  result.A = report.BTN_SOUTH;
-  result.B = report.BTN_EAST;
-  result.C = (report.ABS_RZ != 0)?1:0;
-  result.L = report.BTN_NORTH | report.BTN_TL;
-  result.R = ((report.ABS_Z != 0)?1:0) | report.BTN_TR;
+
+  result.id = 0b001;
+  result.tail = 0b00;
+  result.up = (report->BTN_Z > 0)?1:0;
+  result.down = (report->BTN_Z < 0)?1:0;
+  result.left = (report->BTN_Y < 0)?1:0;
+  result.right = (report->BTN_Y > 0)?1:0;
+  result.X = report->BTN_START;
+  result.P = report->BTN_SELECT | report->BTN_SELECT | report->BTN_WEST;
+  result.A = report->BTN_SOUTH;
+  result.B = report->BTN_EAST;
+  result.C = (report->BTN_B != 0)?1:0;
+  result.L = report->BTN_NORTH | report->BTN_TL;
+  result.R = ((report->BTN_A != 0)?1:0) | report->BTN_TR;
+  return result;
 }
 
 static inline bool is_xbox360_controller(uint8_t dev_addr)
@@ -127,7 +111,7 @@ static inline bool is_xbox360_controller(uint8_t dev_addr)
         );
 }
 
-static void handle_xbox360_report(uint8_t const* report, uint16_t len) {
+static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len) {
   xbox360_report status;
 
   status.ABS_X = *((int16_t*) (report + 12));
@@ -167,12 +151,22 @@ static void handle_xbox360_report(uint8_t const* report, uint16_t len) {
   status.BTN_EAST = (report[3]>>5) & 0x1;
   status.BTN_NORTH = (report[3]>>6) & 0x1;
   status.BTN_WEST = (report[3]>>7) & 0x1;
+
+  return status;
 }
 
 void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
 {
   printf("VENDOR device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
   if ( is_xbox360_controller(dev_addr) ) {
+    uint16_t vid, pid;
+    tuh_vid_pid_get(dev_addr, &vid, &pid);
+    for (int i = 0; i<NB_GAMEPAD_SUPPORTED; i++) {
+      if ((vid == map[i].vid) && (pid == map[i].pid)) {
+        currentMapping = &map[i];
+        break;
+      }
+    }
     printf("Xbox360 compatible detected\r\n");
   }
   if ( !tuh_vendor_receive_report(dev_addr, instance) )
@@ -183,16 +177,21 @@ void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc
 
 void tuh_vendor_umount_cb(uint8_t dev_addr, uint8_t instance)
 {
-  printf("VENDOR device address = %d, instance = %d is unmounted\r\n", dev_addr, instance);
 }
 
 void tuh_vendor_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len)
 {
-printf("Report Received :!\r\n");
-for (int i=0; i< len; i++) printf("0x%x ", report[i]);
-printf("\r\n");
+LOG_3DO("Report Received :!\r\n");
+for (int i=0; i< len; i++) LOG_3DO("0x%x ", report[i]);
+LOG_3DO("\r\n");
 
-if ( is_xbox360_controller(dev_addr) )  handle_xbox360_report(report, len);
+uint16_t vid, pid;
+tuh_vid_pid_get(dev_addr, &vid, &pid);
+if (currentMapping == NULL) return;
+if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
+  xbox360_report xbox360_report = handle_xbox360_report(report,len);
+  update_3do_status(currentMapping->mapper(&xbox360_report));
+}
 
 
   // continue to request to receive report
