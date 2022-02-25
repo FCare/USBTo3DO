@@ -4,7 +4,7 @@
 #include "hardware/gpio.h"
 #include "pico/multicore.h"
 
-#include "3do_interface.h"
+#include "3DO.h"
 
 #define CS_CTRL_PIN 6 //  Data out from 3do
 #define CLK_PIN 2 // Clk from 3do
@@ -50,10 +50,8 @@ void core1_entry() {
     }
 }
 
-void interface_3do_init() {
+void _3DO_init() {
   stdio_init_all();
-  // gpio_init(CS_CTRL_PIN);
-  // gpio_set_dir(CS_CTRL_PIN, GPIO_OUT); //Output
   gpio_init(CLK_PIN);
   gpio_set_dir(CLK_PIN, GPIO_IN); //Input
   gpio_init(DATA_IN_PIN);
@@ -63,7 +61,6 @@ void interface_3do_init() {
   gpio_set_dir(DATA_OUT_PIN, GPIO_OUT); //Output
   gpio_put(DATA_OUT_PIN, 1);
 
-  // gpio_set_drive_strength(CLK_PIN, GPIO_DRIVE_STRENGTH_12MA);
   gpio_set_drive_strength(DATA_OUT_PIN, GPIO_DRIVE_STRENGTH_12MA);
 
   multicore_launch_core1(core1_entry);
@@ -74,7 +71,6 @@ void update_3do_status(_3do_report report) {
   uint16_t report_value;
   memcpy(&report_value, &report, 2);
   printf("Report is %x\n", report_value);
-  // multicore_fifo_push_blocking(report_value);
   currentReport = report_value;
 }
 

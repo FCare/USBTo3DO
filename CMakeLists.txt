@@ -18,26 +18,18 @@ add_definitions(-DPICO_TINYUSB_PATH=${PICO_TINYUSB_PATH})
 
 pico_sdk_init()
 
-add_subdirectory(./lib/Config)
-add_subdirectory(./lib/GUI)
-add_subdirectory(./lib/LCD)
-add_subdirectory(./lib/Fonts)
-
-
 include_directories(./include)
 include_directories(./include/controllers)
-include_directories(./lib/Config)
-include_directories(./lib/GUI)
-include_directories(./lib/LCD)
-include_directories(./lib/Fonts)
+include_directories(./include/interfaces)
+include_directories(./include/gamepads)
 
 
 add_executable(USB_LCD_Pico
 src/main.c
-src/USB_Host.c
-src/hid_gamepad.c
-src/vendor_gamepad.c
-src/3do_interface.c
+src/interfaces/USB.c
+src/interfaces/3DO.c
+src/gamepads/vendor_gamepad.c
+src/gamepads/hid_gamepad.c
 src/controllers/8bitdo.c
 )
 
@@ -48,4 +40,4 @@ pico_enable_stdio_uart(USB_LCD_Pico 1)
 # create map/bin/hex/uf2 file etc.
 pico_add_extra_outputs(USB_LCD_Pico)
 
-target_link_libraries(USB_LCD_Pico LCD GUI Fonts Config pico_stdlib pico_multicore hardware_spi hardware_dma tinyusb_board tinyusb_host)
+target_link_libraries(USB_LCD_Pico pico_stdlib pico_multicore tinyusb_board tinyusb_host)

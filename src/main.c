@@ -1,4 +1,4 @@
-#include "USB_Host.h" //USB Setup
+#include "USB.h" //USB Setup
 
 #include <stdio.h>
 #include "pico/stdlib.h"
@@ -6,8 +6,8 @@
 int main(void)
 {
 	USB_Host_init();
-	interface_3do_init();
-	printf("3DO to USB\r\n");
+	_3DO_init();
+	TU_LOG1("3DO to USB\r\n");
 
 	while(1) {
 		// LCD_loop();

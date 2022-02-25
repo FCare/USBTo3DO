@@ -26,7 +26,7 @@
 #include "bsp/board.h"
 #include "tusb.h"
 
-#include "3do_interface.h"
+#include "3DO.h"
 #include "8bitdo.h"
 
 //Code is made for only one USB port. Will not work in case of HUB plugged
@@ -99,7 +99,7 @@ static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len)
 void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
 {
   _3do_report init = new3doPadReport();
-  printf("VENDOR device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
+  TU_LOG1("VENDOR device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
   if ( is_xbox360_controller(dev_addr) ) {
     uint16_t vid, pid;
     tuh_vid_pid_get(dev_addr, &vid, &pid);
@@ -109,11 +109,11 @@ void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc
         break;
       }
     }
-    printf("Xbox360 compatible detected\r\n");
+    TU_LOG1("Xbox360 compatible detected\r\n");
   }
   if ( !tuh_vendor_receive_report(dev_addr, instance) )
   {
-    printf("Error: cannot request to receive report\r\n");
+    TU_LOG1("Error: cannot request to receive report\r\n");
   }
   update_3do_status(init); //Send empty report to detect gamepad
 }
@@ -124,9 +124,9 @@ void tuh_vendor_umount_cb(uint8_t dev_addr, uint8_t instance)
 
 void tuh_vendor_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len)
 {
-LOG_3DO("Report Received :!\r\n");
-for (int i=0; i< len; i++) LOG_3DO("0x%x ", report[i]);
-LOG_3DO("\r\n");
+TU_LOG1("Report Received :!\r\n");
+for (int i=0; i< len; i++) TU_LOG1("0x%x ", report[i]);
+TU_LOG1("\r\n");
 
 uint16_t vid, pid;
 tuh_vid_pid_get(dev_addr, &vid, &pid);

@@ -1,12 +1,7 @@
 #ifndef __3DO_INTERFACE_H_INCLUDE__
 #define __3DO_INTERFACE_H_INCLUDE__
 
-extern void interface_3do_init();
-
-#define LOG_3DO
-#ifdef CFG_TUSB_DEBUG
-#define LOG_3DO
-#endif
+extern void _3DO_init();
 
 typedef struct {
   //LSB byte
