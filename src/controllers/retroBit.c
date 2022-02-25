@@ -1,15 +1,15 @@
 #include "bsp/board.h"
 
-#include "dragonrise.h"
+#include "retroBit.h"
 #include "hid_gamepad.h"
 
-_3do_report map_dragonRise(void* report_p) {
+_3do_report map_retroBit(void* report_p) {
   hid_report_t* hid_report = (hid_report_t *)report_p;
   uint8_t* report = (uint8_t *)report_p;
 
   printf("%x %x %x %x %x %x %x, \r\n", report[0],report[1],report[2],report[3],report[4],report[5],report[6]);
 
-  //Better to use 7 bytes of report directly
+    //Better to use 7 bytes of report directly
 
   _3do_report result = new3doPadReport();
 

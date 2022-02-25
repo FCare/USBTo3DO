@@ -30,6 +30,8 @@
 #include "hid_gamepad.h"
 
 #include "dragonrise.h"
+#include "wiiadapter.h"
+#include "retroBit.h"
 /* From https://www.kernel.org/doc/html/latest/input/gamepad.html
           ____________________________              __
          / [__ZL__]          [__ZR__] \               |
@@ -115,8 +117,13 @@ typedef struct TU_ATTR_PACKED
 static mapping_3do *currentMapping = NULL;
 
 #define NB_GAMEPAD_SUPPORTED 1
-static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
-  {0x0079, 0x0011, map_dragonRise} //0079:0011 DragonRise Inc. Gamepad
+#define NB_GAMEPAD_IN_LIST 3
+static mapping_3do map[NB_GAMEPAD_IN_LIST] = {
+  {0x0079, 0x0011, map_dragonRise}, //0079:0011 DragonRise Inc. Gamepad
+
+  //NOT SUPPORTED YET
+  {0x0f0d, 0x00c1, map_retroBit}, //USB Gamepad Manufacturer: SWITCH CO.,LTD. SerialNumber: GH-SP-5027-1 H2
+  {0x1d79, 0x0301, map_wii_classic_adapter} //1d79:0301 Dell Dell USB Keyboard Hub //REQUIRE MULTI CONTROLLER SUPPORT //
 };
 
 // check if device is Sony DualShock 4
@@ -138,10 +145,10 @@ static inline bool is_supported_controller(uint8_t dev_addr)
   currentMapping = false;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
   for (int i = 0; i<NB_GAMEPAD_SUPPORTED; i++) {
+    printf("Comapre %x to %x and %x to %x\n", vid, map[i].vid, pid, map[i].pid);
     if ((vid == map[i].vid) && (pid == map[i].pid)) {
       currentMapping = &map[i];
       return true;
-      break;
     }
   }
   return false;
@@ -268,10 +275,10 @@ void process_sony_ds4(uint8_t const* report, uint16_t len)
 
 void process_hid(uint8_t const* report, uint16_t len) {
   uint8_t const report_id = report[0];
-  report++;
-  len--;
+  //Device like wii adapter are sending multiple report since it is a hub.
+  // So needs to add multiple controller support for this case...
   // all buttons state is stored in ID 1
-  if ((report_id == 1) && (currentMapping != NULL))
+  if (currentMapping != NULL)
   {
     hid_report_t hid_report;
     memcpy(&hid_report, report, sizeof(hid_report));
