@@ -70,7 +70,6 @@ void _3DO_init() {
 void update_3do_status(_3do_report report) {
   uint16_t report_value;
   memcpy(&report_value, &report, 2);
-  printf("Report is %x\n", report_value);
   currentReport = report_value;
 }
 

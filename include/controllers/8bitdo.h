@@ -2,7 +2,7 @@
 #define _8_BIT_DO_H_
 
 #include "3DO.h"
-#include "xbox360_controllers.h"
+#include "xbox360_gamepads.h"
 
 extern _3do_report map_8bitDo(void* report_p);
 

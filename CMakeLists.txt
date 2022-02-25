@@ -31,6 +31,7 @@ src/interfaces/3DO.c
 src/gamepads/vendor_gamepad.c
 src/gamepads/hid_gamepad.c
 src/controllers/8bitdo.c
+src/controllers/dragonrise.c
 )
 
 # enable usb output, disable uart output
