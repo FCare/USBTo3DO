@@ -7,4 +7,6 @@ extern void USB_Host_init();
 
 extern void USB_Host_loop();
 
+extern void hid_app_task(void);
+
 #endif

@@ -1,4 +1,5 @@
 #include "USB.h" //USB Setup
+#include "3DO.h" //3DO Setup
 
 #include <stdio.h>
 #include "pico/stdlib.h"
