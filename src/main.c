@@ -1,4 +1,3 @@
-﻿#include "LCD_Test.h" //LCD setup
 #include "USB_Host.h" //USB Setup
 
 #include <stdio.h>

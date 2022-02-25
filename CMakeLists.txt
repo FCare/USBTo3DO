@@ -25,6 +25,7 @@ add_subdirectory(./lib/Fonts)
 
 
 include_directories(./include)
+include_directories(./include/controllers)
 include_directories(./lib/Config)
 include_directories(./lib/GUI)
 include_directories(./lib/LCD)
@@ -33,12 +34,11 @@ include_directories(./lib/Fonts)
 
 add_executable(USB_LCD_Pico
 src/main.c
-src/LCD_0in96_test.c
-src/ImageData.c
 src/USB_Host.c
 src/hid_gamepad.c
 src/vendor_gamepad.c
 src/3do_interface.c
+src/controllers/8bitdo.c
 )
 
 # enable usb output, disable uart output
