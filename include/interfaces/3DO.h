@@ -32,7 +32,7 @@ typedef struct {
    mapper mapper;
  } mapping_3do;
 
- extern void update_3do_status(_3do_report report);
+ extern void update_3do_status(_3do_report report, uint8_t instance);
  extern _3do_report new3doPadReport();
 
 #endif

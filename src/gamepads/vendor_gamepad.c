@@ -115,7 +115,7 @@ void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc
   {
     TU_LOG1("Error: cannot request to receive report\r\n");
   }
-  update_3do_status(init); //Send empty report to detect gamepad
+  update_3do_status(init, instance); //Send empty report to detect gamepad
 }
 
 void tuh_vendor_umount_cb(uint8_t dev_addr, uint8_t instance)
@@ -133,7 +133,7 @@ tuh_vid_pid_get(dev_addr, &vid, &pid);
 if (currentMapping == NULL) return;
 if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
   xbox360_report xbox360_report = handle_xbox360_report(report,len);
-  update_3do_status(currentMapping->mapper(&xbox360_report));
+  update_3do_status(currentMapping->mapper(&xbox360_report), instance);
 }
 
 

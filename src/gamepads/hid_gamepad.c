@@ -273,7 +273,7 @@ void process_sony_ds4(uint8_t const* report, uint16_t len)
   }
 }
 
-void process_hid(uint8_t const* report, uint16_t len) {
+void process_hid(uint8_t const* report, uint8_t instance, uint16_t len) {
   uint8_t const report_id = report[0];
   //Device like wii adapter are sending multiple report since it is a hub.
   // So needs to add multiple controller support for this case...
@@ -282,7 +282,7 @@ void process_hid(uint8_t const* report, uint16_t len) {
   {
     hid_report_t hid_report;
     memcpy(&hid_report, report, sizeof(hid_report));
-    update_3do_status(currentMapping->mapper(&hid_report));
+    update_3do_status(currentMapping->mapper(&hid_report), instance);
   }
 
 }
@@ -294,7 +294,7 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
   {
     process_sony_ds4(report, len);
   } else
-    process_hid(report, len);
+    process_hid(report, instance, len);
 
 
   // continue to request to receive report

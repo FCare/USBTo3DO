@@ -11,8 +11,14 @@
 #define DATA_IN_PIN 6//Data pin from next controlers
 #define DATA_OUT_PIN 3 // Data to 3do
 
-volatile uint16_t transmitReport; //Only one controller at a time for the moment
-volatile uint16_t currentReport = 0xFFFF;
+//Missing dynammic allocation of controllers
+
+#define MAX_CONTROLERS 9
+
+uint16_t transmitReport[MAX_CONTROLERS]; //Only one controller at a time for the moment
+uint8_t nbBits = 0;
+volatile uint16_t currentReport[MAX_CONTROLERS] = {0xFFFF};
+volatile bool deviceAttached[MAX_CONTROLERS] = {false};
 
 volatile uint64_t lastFall = 0;
 
@@ -34,15 +40,19 @@ void core1_entry() {
         oldState = state;
         if (state) {
           //Rising edge
-          gpio_put(DATA_OUT_PIN, transmitReport & 0x1);
-          transmitReport = (transmitReport>>1) | 0x8000;
+          int idControler = nbBits >> 4;
+          if (idControler >= MAX_CONTROLERS) idControler = MAX_CONTROLERS - 1;
+          gpio_put(DATA_OUT_PIN, transmitReport[idControler] & 0x1);
+          transmitReport[idControler] = (transmitReport[idControler]>>1) | 0x8000;
+          if (nbBits < 16*MAX_CONTROLERS -1) nbBits++;
         } else {
           //Falling edge
           uint64_t start = time_us_64();
           if ((start - lastFall) >= 800) {
-            transmitReport = currentReport;
-            gpio_put(DATA_OUT_PIN, transmitReport & 0x1);
-            transmitReport = (transmitReport>>1) | 0x8000;
+            for (int i =0; i<MAX_CONTROLERS; i++) transmitReport[i] = currentReport[i];
+            gpio_put(DATA_OUT_PIN, transmitReport[0] & 0x1);
+            transmitReport[0] = (transmitReport[0]>>1) | 0x8000;
+            nbBits = 1;
           }
           lastFall = start;
         }
@@ -67,10 +77,12 @@ void _3DO_init() {
 }
 
 
-void update_3do_status(_3do_report report) {
+void update_3do_status(_3do_report report, uint8_t instance) {
+  if (instance >= MAX_CONTROLERS) report;
   uint16_t report_value;
   memcpy(&report_value, &report, 2);
-  currentReport = report_value;
+  currentReport[instance] = report_value;
+  deviceAttached[instance] = true;
 }
 
 _3do_report new3doPadReport() {
