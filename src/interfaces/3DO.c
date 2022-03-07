@@ -6,10 +6,10 @@
 
 #include "3DO.h"
 
-#define CS_CTRL_PIN 6 //  Data out from 3do
 #define CLK_PIN 2 // Clk from 3do
-#define DATA_IN_PIN 6//Data pin from next controlers
 #define DATA_OUT_PIN 3 // Data to 3do
+#define DATA_IN_PIN 4//Data pin from next controlers
+#define CS_CTRL_PIN 5 //  Data out from 3do
 
 //Missing dynammic allocation of controllers
 
@@ -17,8 +17,11 @@
 
 uint16_t transmitReport[MAX_CONTROLERS]; //Only one controller at a time for the moment
 uint8_t nbBits = 0;
+uint8_t nbExternalBits = 0;
 volatile uint16_t currentReport[MAX_CONTROLERS] = {0xFFFF};
 volatile bool deviceAttached[MAX_CONTROLERS] = {false};
+volatile bool deviceReported[MAX_CONTROLERS] = {false};
+volatile uint8_t externalControllerId = MAX_CONTROLERS;
 
 volatile uint64_t lastFall = 0;
 
@@ -40,19 +43,43 @@ void core1_entry() {
         oldState = state;
         if (state) {
           //Rising edge
+          // printf("Rising edge on clock\n");
+          //input data
+          if (nbExternalBits < (MAX_CONTROLERS - externalControllerId)*16) {
+            bool val = gpio_get(DATA_IN_PIN);
+            transmitReport[externalControllerId + (nbExternalBits / 16)] |= val << (nbExternalBits % 16);
+            // printf("Got %d => [%d] %x\n", val, externalControllerId + (nbExternalBits / 16), transmitReport[externalControllerId + (nbExternalBits / 16)]);
+            nbExternalBits++;
+          }
+          //output data
           int idControler = nbBits >> 4;
           if (idControler >= MAX_CONTROLERS) idControler = MAX_CONTROLERS - 1;
           gpio_put(DATA_OUT_PIN, transmitReport[idControler] & 0x1);
           transmitReport[idControler] = (transmitReport[idControler]>>1) | 0x8000;
           if (nbBits < 16*MAX_CONTROLERS -1) nbBits++;
+
         } else {
           //Falling edge
           uint64_t start = time_us_64();
           if ((start - lastFall) >= 800) {
-            for (int i =0; i<MAX_CONTROLERS; i++) transmitReport[i] = currentReport[i];
+            bool externalFound = false;
+            externalControllerId = MAX_CONTROLERS;
+            for (int i =0; i<MAX_CONTROLERS; i++) {
+              transmitReport[i] = currentReport[i];
+              deviceReported[i] = deviceAttached[i];
+              if (!externalFound && !deviceReported[i]) {
+                externalControllerId = i;
+                externalFound = true;
+              }
+            }
+            for (int i= externalControllerId; i<MAX_CONTROLERS; i++) {
+              //Clear report from external controlers
+              transmitReport[i] = 0x0;
+            }
             gpio_put(DATA_OUT_PIN, transmitReport[0] & 0x1);
             transmitReport[0] = (transmitReport[0]>>1) | 0x8000;
             nbBits = 1;
+            nbExternalBits = 0;
           }
           lastFall = start;
         }
