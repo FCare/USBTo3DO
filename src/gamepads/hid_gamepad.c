@@ -116,7 +116,7 @@ typedef struct TU_ATTR_PACKED
 
 static mapping_3do *currentMapping = NULL;
 
-#define NB_GAMEPAD_SUPPORTED 1
+#define NB_GAMEPAD_SUPPORTED 3
 #define NB_GAMEPAD_IN_LIST 3
 static mapping_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x0079, 0x0011, map_dragonRise}, //0079:0011 DragonRise Inc. Gamepad
@@ -282,7 +282,7 @@ void process_hid(uint8_t const* report, uint8_t instance, uint16_t len) {
   {
     hid_report_t hid_report;
     memcpy(&hid_report, report, sizeof(hid_report));
-    update_3do_status(currentMapping->mapper(&hid_report), instance);
+    update_3do_status(currentMapping->mapper(&hid_report, instance), instance);
   }
 
 }

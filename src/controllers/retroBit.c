@@ -3,7 +3,7 @@
 #include "retroBit.h"
 #include "hid_gamepad.h"
 
-_3do_report map_retroBit(void* report_p) {
+_3do_report map_retroBit(void* report_p,uint8_t instance) {
   hid_report_t* hid_report = (hid_report_t *)report_p;
   uint8_t* report = (uint8_t *)report_p;
 

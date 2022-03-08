@@ -108,7 +108,7 @@ void _3DO_init() {
 
 
 void update_3do_status(_3do_report report, uint8_t instance) {
-  if (instance >= MAX_CONTROLERS) report;
+  if (instance >= MAX_CONTROLERS) return;
   uint16_t report_value;
   memcpy(&report_value, &report, 2);
   currentReport[instance] = report_value;

@@ -4,6 +4,6 @@
 #include "3DO.h"
 #include "xbox360_gamepads.h"
 
-extern _3do_report map_8bitDo(void* report_p);
+extern _3do_report map_8bitDo(void* report_p, uint8_t instance);
 
 #endif

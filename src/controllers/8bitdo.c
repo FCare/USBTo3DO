@@ -2,7 +2,7 @@
 
 #include "8bitdo.h"
 
-_3do_report map_8bitDo(void *report_p) {
+_3do_report map_8bitDo(void *report_p, uint8_t instance) {
   xbox360_report* report = (xbox360_report *)report_p;
   _3do_report result = new3doPadReport();
 

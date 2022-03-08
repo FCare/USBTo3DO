@@ -3,6 +3,6 @@
 
 #include "3DO.h"
 
-extern _3do_report map_dragonRise(void* report_p);
+extern _3do_report map_dragonRise(void* report_p,uint8_t instance);
 
 #endif
