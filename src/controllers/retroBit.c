@@ -3,12 +3,17 @@
 #include "retroBit.h"
 #include "hid_gamepad.h"
 
+static uint8_t oldReport[2][7];
+
 _3do_report map_retroBit(void* report_p,uint8_t instance) {
   hid_report_t* hid_report = (hid_report_t *)report_p;
   uint8_t* report = (uint8_t *)report_p;
-
-  printf("%x %x %x %x %x %x %x, \r\n", report[0],report[1],report[2],report[3],report[4],report[5],report[6]);
-
+  #if 1
+  //used for mapping debug
+    if (memcmp(&oldReport[instance], report, 7) != 0)
+      printf("%x %x %x %x %x %x %x, \r\n", report[0],report[1],report[2],report[3],report[4],report[5],report[6]);
+    memcpy(&oldReport[instance], report, 7);
+  #endif
     //Better to use 7 bytes of report directly
 
   _3do_report result = new3doPadReport();
