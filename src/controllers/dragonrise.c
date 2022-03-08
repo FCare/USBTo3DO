@@ -27,5 +27,11 @@ _3do_report map_dragonRise(void* report_p,uint8_t instance) {
   result.C = (report[5]>>6)&0x1;
   result.L = ((report[5]>>7)&0x1) | ((report[6]>>2)&0x1);
   result.R = ((report[6]>>1)&0x1) | ((report[6]>>3)&0x1);
+  #if 0
+    //used for mapping debug
+    printf("(up, down, left, right) (%d %d %d %d) (X,P,A,B,C,L,R)(%d %d %d %d %d %d %d)\n",
+          result.up, result.down, result.left, result.right, result.X, result.P, result.A, result.B, result.C, result.L, result.R);
+  #endif
+
   return result;
 }
