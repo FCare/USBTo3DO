@@ -8,7 +8,7 @@
 
 #define CLK_PIN 2 // Clk from 3do
 #define DATA_OUT_PIN 3 // Data to 3do
-#define DATA_IN_PIN 4//Data pin from next controlers
+#define DATA_IN_PIN 4 //Data pin from next controlers
 #define CS_CTRL_PIN 5 //  Data out from 3do
 
 //Missing dynammic allocation of controllers
@@ -97,6 +97,9 @@ void _3DO_init() {
   gpio_init(DATA_OUT_PIN);
   gpio_set_dir(DATA_OUT_PIN, GPIO_OUT); //Output
   gpio_put(DATA_OUT_PIN, 1);
+  gpio_init(CS_CTRL_PIN);
+  gpio_set_dir(CS_CTRL_PIN, GPIO_IN); //Input
+
 
   gpio_set_drive_strength(DATA_OUT_PIN, GPIO_DRIVE_STRENGTH_12MA);
 
