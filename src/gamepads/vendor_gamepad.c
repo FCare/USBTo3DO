@@ -133,7 +133,9 @@ tuh_vid_pid_get(dev_addr, &vid, &pid);
 if (currentMapping == NULL) return;
 if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
   xbox360_report xbox360_report = handle_xbox360_report(report,len);
-  update_3do_status(currentMapping->mapper(&xbox360_report, instance), instance);
+  uint8_t id;
+  _3do_report newreport = currentMapping->mapper(&xbox360_report, instance, &id);
+  update_3do_status(newreport, id);
 }
 
 

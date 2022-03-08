@@ -32,6 +32,7 @@
 #include "dragonrise.h"
 #include "wiiadapter.h"
 #include "retroBit.h"
+#include "saturnAdapter.h"
 /* From https://www.kernel.org/doc/html/latest/input/gamepad.html
           ____________________________              __
          / [__ZL__]          [__ZR__] \               |
@@ -116,14 +117,15 @@ typedef struct TU_ATTR_PACKED
 
 static mapping_3do *currentMapping = NULL;
 
-#define NB_GAMEPAD_SUPPORTED 3
-#define NB_GAMEPAD_IN_LIST 3
+#define NB_GAMEPAD_SUPPORTED 4
+#define NB_GAMEPAD_IN_LIST 4
 static mapping_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x0079, 0x0011, map_dragonRise}, //0079:0011 DragonRise Inc. Gamepad
 
   //NOT SUPPORTED YET
   {0x0f0d, 0x00c1, map_retroBit}, //USB Gamepad Manufacturer: SWITCH CO.,LTD. SerialNumber: GH-SP-5027-1 H2
-  {0x1d79, 0x0301, map_wii_classic_adapter} //1d79:0301 Dell Dell USB Keyboard Hub //REQUIRE MULTI CONTROLLER SUPPORT //
+  {0x1d79, 0x0301, map_wii_classic_adapter}, //1d79:0301 Dell Dell USB Keyboard Hub //REQUIRE MULTI CONTROLLER SUPPORT //
+  {0x0e8f, 0x3010, map_saturn_adapter} //0e8f:3010 GreenAsia Inc. Dell USB Keyboard Hub
 };
 
 // check if device is Sony DualShock 4
@@ -282,7 +284,9 @@ void process_hid(uint8_t const* report, uint8_t instance, uint16_t len) {
   {
     hid_report_t hid_report;
     memcpy(&hid_report, report, sizeof(hid_report));
-    update_3do_status(currentMapping->mapper(&hid_report, instance), instance);
+    uint8_t id;
+    _3do_report newreport = currentMapping->mapper(&hid_report, instance, &id);
+    update_3do_status(newreport, id);
   }
 
 }

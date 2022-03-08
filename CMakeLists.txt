@@ -34,6 +34,7 @@ src/controllers/8bitdo.c
 src/controllers/dragonrise.c
 src/controllers/wiiadapter.c
 src/controllers/retroBit.c
+src/controllers/saturnAdapter.c
 )
 
 # enable usb output, disable uart output

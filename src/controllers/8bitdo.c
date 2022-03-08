@@ -2,9 +2,10 @@
 
 #include "8bitdo.h"
 
-_3do_report map_8bitDo(void *report_p, uint8_t instance) {
+_3do_report map_8bitDo(void *report_p, uint8_t instance, uint8_t *controler_id) {
   xbox360_report* report = (xbox360_report *)report_p;
   _3do_report result = new3doPadReport();
+  *controler_id = instance;
 
   result.up = (report->BTN_Z > 0)?1:0;
   result.down = (report->BTN_Z < 0)?1:0;

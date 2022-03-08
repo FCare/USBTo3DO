@@ -24,7 +24,7 @@ uint16_t tail : 2;
 } _3do_report;
 
 
-typedef _3do_report (*mapper)(void *, uint8_t instance);
+typedef _3do_report (*mapper)(void *, uint8_t instance, uint8_t *controler_id);
 
 typedef struct {
    uint16_t vid;

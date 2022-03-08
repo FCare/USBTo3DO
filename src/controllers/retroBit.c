@@ -5,7 +5,7 @@
 
 static uint8_t oldReport[2][7];
 
-_3do_report map_retroBit(void* report_p,uint8_t instance) {
+_3do_report map_retroBit(void* report_p,uint8_t instance, uint8_t *controler_id) {
   uint8_t* report = (uint8_t *)report_p;
   #if 0
   //used for mapping debug
@@ -16,6 +16,8 @@ _3do_report map_retroBit(void* report_p,uint8_t instance) {
     //Better to use 7 bytes of report directly
 
   _3do_report result = new3doPadReport();
+
+  *controler_id = instance;
 
   result.up = (report[4] < 0x80)?1:0;
   result.down = (report[4] > 0x80)?1:0;
