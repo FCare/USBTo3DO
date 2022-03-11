@@ -36,10 +36,11 @@
 
 static mapping_3do *currentMapping = NULL;
 
-#define NB_GAMEPAD_SUPPORTED 1
+#define NB_GAMEPAD_SUPPORTED 2
 static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
   //045e:028e 8bitDo - M30 seen as Xbox360 controller
-  {0x045e, 0x028e, map_8bitDo}
+  {0x045e, 0x028e, map_8bitDo},
+  {0x45e, 0x2a9, map_8bitDo}
 };
 
 
@@ -47,9 +48,11 @@ static inline bool is_xbox360_controller(uint8_t dev_addr)
 {
   uint16_t vid, pid;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
-  return ( (vid == 0x046d && pid == 0xc21d) //046d:c21d Logitech, Inc. F310 Gamepad
-          ||  (vid == 0x045e && pid == 0x028e)
-        );
+  TU_LOG1("Look for vid 0x%x, pid 0x%x\n", vid, pid);
+  for (int i = 0; i < NB_GAMEPAD_SUPPORTED; i++) {
+    if ((vid == map[i].vid) && (pid = map[i].pid)) return true;
+  }
+  return false;
 }
 
 static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len) {
