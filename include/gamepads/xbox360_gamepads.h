@@ -37,8 +37,6 @@ typedef struct
  uint8_t BTN_TL;
 
  int8_t BTN_Y;
- int8_t BTN_C;
- int8_t BTN_Z;
 } xbox360_report;
 
 #endif

@@ -125,10 +125,10 @@ static mapping_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x0079, 0x0011, map_dragonRise}, //0079:0011 DragonRise Inc. Gamepad
 
   //NOT SUPPORTED YET
-  {0x0f0d, 0x00c1, map_retroBit}, //USB Gamepad Manufacturer: SWITCH CO.,LTD. SerialNumber: GH-SP-5027-1 H2
-  {0x1d79, 0x0301, map_wii_classic_adapter}, //1d79:0301 Dell Dell USB Keyboard Hub //REQUIRE MULTI CONTROLLER SUPPORT //
-  {0x0e8f, 0x3010, map_saturn_adapter}, //0e8f:3010 GreenAsia Inc. Dell USB Keyboard Hub
-  {0x054c, 0x0cda, map_ps_classic}, // 054c:0cda Sony Corp. PlayStation Classic controller
+  {0x0f0d, 0x00c1, map_retroBit, NULL}, //USB Gamepad Manufacturer: SWITCH CO.,LTD. SerialNumber: GH-SP-5027-1 H2
+  {0x1d79, 0x0301, map_wii_classic_adapter, NULL}, //1d79:0301 Dell Dell USB Keyboard Hub //REQUIRE MULTI CONTROLLER SUPPORT //
+  {0x0e8f, 0x3010, map_saturn_adapter, NULL}, //0e8f:3010 GreenAsia Inc. Dell USB Keyboard Hub
+  {0x054c, 0x0cda, map_ps_classic, NULL}, // 054c:0cda Sony Corp. PlayStation Classic controller
 };
 
 // check if device is Sony DualShock 4
@@ -278,7 +278,7 @@ void process_sony_ds4(uint8_t const* report, uint16_t len)
   }
 }
 
-void process_hid(uint8_t const* report, uint8_t instance, uint16_t len) {
+void process_hid(uint8_t const* report, int8_t dev_addr, uint8_t instance, uint16_t len) {
   uint8_t const report_id = report[0];
   //Device like wii adapter are sending multiple report since it is a hub.
   // So needs to add multiple controller support for this case...
@@ -288,8 +288,10 @@ void process_hid(uint8_t const* report, uint8_t instance, uint16_t len) {
     hid_report_t hid_report;
     memcpy(&hid_report, report, sizeof(hid_report));
     uint8_t id;
-    _3do_report newreport = currentMapping->mapper(&hid_report, instance, &id);
-    update_3do_status(newreport, id);
+    _3do_report newreport = new3doPadReport();
+    if (currentMapping->mapper(&hid_report, len, dev_addr, instance, &id, &newreport)) {
+      update_3do_status(newreport, id);
+    }
   }
 
 }
@@ -301,7 +303,7 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
   {
     process_sony_ds4(report, len);
   } else
-    process_hid(report, instance, len);
+    process_hid(report, dev_addr, instance, len);
 
 
   // continue to request to receive report

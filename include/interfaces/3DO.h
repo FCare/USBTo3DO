@@ -24,12 +24,14 @@ uint16_t tail : 2;
 } _3do_report;
 
 
-typedef _3do_report (*mapper)(void *, uint8_t instance, uint8_t *controler_id);
+typedef bool (*mapper)(void *, uint8_t len, uint8_t dev_addr, uint8_t instance, uint8_t *controler_id, _3do_report* result);
+typedef void (*mountFunc)(uint8_t, uint8_t );
 
 typedef struct {
    uint16_t vid;
    uint16_t pid;
    mapper mapper;
+   mountFunc mount;
  } mapping_3do;
 
  extern void update_3do_status(_3do_report report, uint8_t instance);

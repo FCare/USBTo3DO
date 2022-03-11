@@ -28,124 +28,39 @@
 
 #include "3DO.h"
 #include "8bitdo.h"
+#include "xbox360w.h"
 
 //Code is made for only one USB port. Will not work in case of HUB plugged
 
  // 046d:c21d Logitech, Inc. F310 Gamepad [XInput Mode]
-
-typedef enum {
-  LED_OFF = 0,
-  LED_ALL_BLINK,
-  LED_TOP_LEFT_BLINK_AND_ON,
-  LED_TOP_RIGHT_BLINK_AND_ON,
-  LED_BOTTOM_LEFT_BLINK_AND_ON,
-  LED_BOTTOM_RIGHT_BLINK_AND_ON,
-  LED_TOP_LEFT_ON, //1
-  LED_TOP_RIGHT_ON, //2
-  LED_BOTTOM_LEFT_ON, //3
-  LED_BOTTOM_RIGHT_ON, //4
-  LED_ROTATE,
-  LED_BLINK,
-  LED_SLOW_BLINK,
-  LED_ROTATE_TWO_LIGHTS,
-  LED_ALL_SLOW_BLINKS,
-  LED_BLINK_ONCE
-} led_state;
 
 
 static mapping_3do *currentMapping = NULL;
 
 #define NB_GAMEPAD_SUPPORTED 2
 static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
-  {0x045e, 0x028e, map_8bitDo}, //045e:028e 8bitDo - M30 seen as Xbox360 controller
-  {0x045e, 0x2a9, map_8bitDo}, //Xbox 360 wireless receiver
+  {0x045e, 0x028e, map_8bitDo, NULL}, //045e:028e 8bitDo - M30 seen as Xbox360 controller
+  {0x045e, 0x2a9, map_xbox360w, mount_xbox360w}, //Xbox 360 wireless receiver
   // {0x046d, 0xc21d, map_8bitDo} //Logitech F310
 };
-
-
-static inline bool is_xbox360_controller(uint8_t dev_addr)
-{
-  uint16_t vid, pid;
-  tuh_vid_pid_get(dev_addr, &vid, &pid);
-  TU_LOG1("Look for vid 0x%x, pid 0x%x\n", vid, pid);
-  for (int i = 0; i < NB_GAMEPAD_SUPPORTED; i++) {
-    if ((vid == map[i].vid) && (pid = map[i].pid)) return true;
-  }
-  return false;
-}
-
-static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len) {
-  xbox360_report status;
-
-  status.ABS_X = *((int16_t*) (report + 12));
-  status.ABS_Y = *((int16_t*) (report + 14));
-  status.ABS_RX = *((int16_t*) (report + 16));
-  status.ABS_RY = *((int16_t*) (report + 18));
-
-  status.BTN_TL2 = report[10];
-  status.BTN_TR2 = report[11];
-  status.ABS_Z = report[10];
-  status.ABS_RZ = report[11];
-
-  status.BTN_TRIGGER_HAPPY1 = (report[2]>>2) & 0x1;
-  status.BTN_TRIGGER_HAPPY2 = (report[2]>>3) & 0x1;
-  status.BTN_TRIGGER_HAPPY3 = (report[2]>>0) & 0x1;
-  status.BTN_TRIGGER_HAPPY4 = (report[2]>>1) & 0x1;
-  status.ABS_HAT0X = !!(report[2] & 0x08) - !!(report[2] & 0x04);
-  status.ABS_HAT0Y = !!(report[2] & 0x02) - !!(report[2] & 0x01);
-
-  status.BTN_START = (report[2]>>4) & 0x1;
-  status.BTN_SELECT = (report[2]>>5) & 0x1;
-  status.BTN_THUMBL = (report[2]>>6) & 0x1;
-  status.BTN_THUMBR = (report[2]>>7) & 0x1;
-
-  status.BTN_A = report[4];
-  status.BTN_B = report[5];
-  status.BTN_X = report[6];
-  status.BTN_Y = report[7];
-
-  status.BTN_C = report[8];
-  status.BTN_Z = report[9];
-
-  status.BTN_TL = (report[3]>>0) & 0x1;
-  status.BTN_TR = (report[3]>>1) & 0x1;
-  status.BTN_MODE = (report[3]>>2) & 0x1;
-  status.BTN_SOUTH = (report[3]>>4) & 0x1;
-  status.BTN_EAST = (report[3]>>5) & 0x1;
-  status.BTN_NORTH = (report[3]>>6) & 0x1;
-  status.BTN_WEST = (report[3]>>7) & 0x1;
-
-  return status;
-}
-
-void set_led(uint8_t dev_addr, uint8_t instance, led_state state) {
-  uint8_t protocol;
-  tuh_vendor_protocol_get(dev_addr, instance, &protocol);
-  if (protocol == 129) {
-    uint8_t buffer[12] = {0x00};
-    buffer[2] = 0x08;
-    buffer[3] = 0x40 + state; //rotate
-    tuh_vendor_send_packet_out(dev_addr, instance, &buffer[0], 12);
-  }
-}
 
 void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
 {
   _3do_report init = new3doPadReport();
-  TU_LOG1("VENDOR device address = %d, instance = %d is mounted %x %x\ %dr\n", dev_addr, instance, desc_report[0], desc_report[1], desc_len);
-  if ( is_xbox360_controller(dev_addr) ) {
-    uint16_t vid, pid;
-    tuh_vid_pid_get(dev_addr, &vid, &pid);
-    for (int i = 0; i<NB_GAMEPAD_SUPPORTED; i++) {
-      if ((vid == map[i].vid) && (pid == map[i].pid)) {
-        currentMapping = &map[i];
-        break;
-      }
+  printf("VENDOR device address = %d, instance = %d is mounted %x %x %d \r\n", dev_addr, instance, desc_report[0], desc_report[1], desc_len);
+  uint16_t vid, pid;
+  tuh_vid_pid_get(dev_addr, &vid, &pid);
+  for (int i = 0; i<NB_GAMEPAD_SUPPORTED; i++) {
+    if ((vid == map[i].vid) && (pid == map[i].pid)) {
+      currentMapping = &map[i];
+      printf("Xbox360 compatible detected\r\n");
+      break;
     }
-    TU_LOG1("Xbox360 compatible detected\r\n");
   }
 
-  set_led(dev_addr, instance, LED_ALL_BLINK);
+  if (currentMapping == NULL) return;
+
+  if (currentMapping->mount != NULL) currentMapping->mount(dev_addr, instance);
 
   if ( !tuh_vendor_receive_report(dev_addr, instance) )
   {
@@ -164,19 +79,14 @@ TU_LOG1("Report Received :!\r\n");
 for (int i=0; i< len; i++) TU_LOG1("0x%x ", report[i]);
 TU_LOG1("\r\n");
 
+
 uint16_t vid, pid;
 tuh_vid_pid_get(dev_addr, &vid, &pid);
 if (currentMapping == NULL) return;
 if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
-  xbox360_report xbox360_report = handle_xbox360_report(report,len);
   uint8_t id;
-  _3do_report newreport = currentMapping->mapper(&xbox360_report, instance, &id);
-  if (len == 2) {
-    if ((report[0] & 0x08) && ((report[1] & 0x80) != 0)) {
-      TU_LOG1("set Led to :%d\r\n", LED_TOP_LEFT_BLINK_AND_ON + id%4);
-      set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + id%4);
-    }
-  } else {
+  _3do_report newreport = new3doPadReport();
+  if (currentMapping->mapper(report, len, dev_addr, instance, &id, &newreport)) {
     update_3do_status(newreport, id);
   }
 }
