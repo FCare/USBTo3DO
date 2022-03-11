@@ -33,14 +33,33 @@
 
  // 046d:c21d Logitech, Inc. F310 Gamepad [XInput Mode]
 
+typedef enum {
+  LED_OFF = 0,
+  LED_ALL_BLINK,
+  LED_TOP_LEFT_BLINK_AND_ON,
+  LED_TOP_RIGHT_BLINK_AND_ON,
+  LED_BOTTOM_LEFT_BLINK_AND_ON,
+  LED_BOTTOM_RIGHT_BLINK_AND_ON,
+  LED_TOP_LEFT_ON, //1
+  LED_TOP_RIGHT_ON, //2
+  LED_BOTTOM_LEFT_ON, //3
+  LED_BOTTOM_RIGHT_ON, //4
+  LED_ROTATE,
+  LED_BLINK,
+  LED_SLOW_BLINK,
+  LED_ROTATE_TWO_LIGHTS,
+  LED_ALL_SLOW_BLINKS,
+  LED_BLINK_ONCE
+} led_state;
+
 
 static mapping_3do *currentMapping = NULL;
 
 #define NB_GAMEPAD_SUPPORTED 2
 static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
-  //045e:028e 8bitDo - M30 seen as Xbox360 controller
-  {0x045e, 0x028e, map_8bitDo},
-  {0x45e, 0x2a9, map_8bitDo}
+  {0x045e, 0x028e, map_8bitDo}, //045e:028e 8bitDo - M30 seen as Xbox360 controller
+  {0x045e, 0x2a9, map_8bitDo}, //Xbox 360 wireless receiver
+  // {0x046d, 0xc21d, map_8bitDo} //Logitech F310
 };
 
 
@@ -99,10 +118,21 @@ static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len)
   return status;
 }
 
+void set_led(uint8_t dev_addr, uint8_t instance, led_state state) {
+  uint8_t protocol;
+  tuh_vendor_protocol_get(dev_addr, instance, &protocol);
+  if (protocol == 129) {
+    uint8_t buffer[12] = {0x00};
+    buffer[2] = 0x08;
+    buffer[3] = 0x40 + state; //rotate
+    tuh_vendor_send_packet_out(dev_addr, instance, &buffer[0], 12);
+  }
+}
+
 void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
 {
   _3do_report init = new3doPadReport();
-  TU_LOG1("VENDOR device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
+  TU_LOG1("VENDOR device address = %d, instance = %d is mounted %x %x\ %dr\n", dev_addr, instance, desc_report[0], desc_report[1], desc_len);
   if ( is_xbox360_controller(dev_addr) ) {
     uint16_t vid, pid;
     tuh_vid_pid_get(dev_addr, &vid, &pid);
@@ -114,6 +144,9 @@ void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc
     }
     TU_LOG1("Xbox360 compatible detected\r\n");
   }
+
+  set_led(dev_addr, instance, LED_ALL_BLINK);
+
   if ( !tuh_vendor_receive_report(dev_addr, instance) )
   {
     TU_LOG1("Error: cannot request to receive report\r\n");
@@ -138,7 +171,14 @@ if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
   xbox360_report xbox360_report = handle_xbox360_report(report,len);
   uint8_t id;
   _3do_report newreport = currentMapping->mapper(&xbox360_report, instance, &id);
-  update_3do_status(newreport, id);
+  if (len == 2) {
+    if ((report[0] & 0x08) && ((report[1] & 0x80) != 0)) {
+      TU_LOG1("set Led to :%d\r\n", LED_TOP_LEFT_BLINK_AND_ON + id%4);
+      set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + id%4);
+    }
+  } else {
+    update_3do_status(newreport, id);
+  }
 }
 
 
