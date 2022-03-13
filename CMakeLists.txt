@@ -12,7 +12,7 @@ include(${PICO_TINYUSB_PATH}/hw/bsp/${FAMILY}/family.cmake)
 set(CFG_TUSB_CONFIG_FILE "include/tusb_config.h")
 
 
-project(USB_LCD_Pico)
+project(USBto3Do)
 
 add_definitions(-DPICO_TINYUSB_PATH=${PICO_TINYUSB_PATH})
 
@@ -24,7 +24,7 @@ include_directories(./include/interfaces)
 include_directories(./include/gamepads)
 
 
-add_executable(USB_LCD_Pico
+add_executable(USBto3Do
 src/main.c
 src/interfaces/USB.c
 src/interfaces/3DO.c
@@ -40,10 +40,10 @@ src/controllers/psClassic.c
 )
 
 # enable usb output, disable uart output
-# pico_enable_stdio_usb(USB_LCD_Pico 1)
-pico_enable_stdio_uart(USB_LCD_Pico 1)
+# pico_enable_stdio_usb(USBto3Do 1)
+pico_enable_stdio_uart(USBto3Do 1)
 
 # create map/bin/hex/uf2 file etc.
-pico_add_extra_outputs(USB_LCD_Pico)
+pico_add_extra_outputs(USBto3Do)
 
-target_link_libraries(USB_LCD_Pico pico_stdlib pico_multicore tinyusb_board tinyusb_host)
+target_link_libraries(USBto3Do pico_stdlib pico_multicore tinyusb_board tinyusb_host)
