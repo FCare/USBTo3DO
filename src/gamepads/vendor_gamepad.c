@@ -47,26 +47,29 @@ static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
 void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
 {
   _3do_report init = new3doPadReport();
-  printf("VENDOR device address = %d, instance = %d is mounted %x %x %d \r\n", dev_addr, instance, desc_report[0], desc_report[1], desc_len);
+  TU_LOG1("VENDOR device address = %d, instance = %d is mounted %x %x %d \r\n", dev_addr, instance, desc_report[0], desc_report[1], desc_len);
   uint16_t vid, pid;
+  bool newControllerAdded = true;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
   for (int i = 0; i<NB_GAMEPAD_SUPPORTED; i++) {
     if ((vid == map[i].vid) && (pid == map[i].pid)) {
       currentMapping = &map[i];
-      printf("Xbox360 compatible detected\r\n");
+      TU_LOG1("Xbox360 compatible detected\r\n");
       break;
     }
   }
 
   if (currentMapping == NULL) return;
 
-  if (currentMapping->mount != NULL) currentMapping->mount(dev_addr, instance);
+  if (currentMapping->mount != NULL) {
+    newControllerAdded = currentMapping->mount(dev_addr, instance);
+  }
 
   if ( !tuh_vendor_receive_report(dev_addr, instance) )
   {
     TU_LOG1("Error: cannot request to receive report\r\n");
   }
-  update_3do_status(init, instance); //Send empty report to detect gamepad
+  if (newControllerAdded) update_3do_status(init, instance); //Send empty report to detect gamepad
 }
 
 void tuh_vendor_umount_cb(uint8_t dev_addr, uint8_t instance)
@@ -88,6 +91,8 @@ if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
   _3do_report newreport = new3doPadReport();
   if (currentMapping->mapper(report, len, dev_addr, instance, &id, &newreport)) {
     update_3do_status(newreport, id);
+  } else {
+    update_3do_status(new3doPadReport(), id);
   }
 }
 
@@ -95,6 +100,6 @@ if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
   // continue to request to receive report
   if ( !tuh_vendor_receive_report(dev_addr, instance) )
   {
-    printf("Error: cannot request to receive report\r\n");
+    TU_LOG1("Error: cannot request to receive report\r\n");
   }
 }

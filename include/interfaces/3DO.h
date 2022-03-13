@@ -25,7 +25,7 @@ uint16_t tail : 2;
 
 
 typedef bool (*mapper)(void *, uint8_t len, uint8_t dev_addr, uint8_t instance, uint8_t *controler_id, _3do_report* result);
-typedef void (*mountFunc)(uint8_t, uint8_t );
+typedef bool (*mountFunc)(uint8_t, uint8_t );
 
 typedef struct {
    uint16_t vid;

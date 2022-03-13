@@ -134,6 +134,7 @@ static mapping_3do map[NB_GAMEPAD_IN_LIST] = {
 // check if device is Sony DualShock 4
 static inline bool is_sony_ds4(uint8_t dev_addr)
 {
+  return false; //not tested based on Tiny USB example. Need to get a DS4 controler to implement
   uint16_t vid, pid;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
 
@@ -150,7 +151,7 @@ static inline bool is_supported_controller(uint8_t dev_addr)
   currentMapping = false;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
   for (int i = 0; i<NB_GAMEPAD_SUPPORTED; i++) {
-    printf("Comapre %x to %x and %x to %x\n", vid, map[i].vid, pid, map[i].pid);
+    TU_LOG1("Comapre %x to %x and %x to %x\n", vid, map[i].vid, pid, map[i].pid);
     if ((vid == map[i].vid) && (pid == map[i].pid)) {
       currentMapping = &map[i];
       return true;
@@ -183,8 +184,8 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
   uint16_t vid, pid;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
 
-  printf("HID device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
-  printf("VID = %04x, PID = %04x\r\n", vid, pid);
+  TU_LOG1("HID device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
+  TU_LOG1("VID = %04x, PID = %04x\r\n", vid, pid);
 
   // Sony DualShock 4 [CUH-ZCT2x]
   if ( is_sony_ds4(dev_addr) || is_supported_controller(dev_addr))
@@ -193,7 +194,7 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
     // tuh_hid_report_received_cb() will be invoked when report is available
     if ( !tuh_hid_receive_report(dev_addr, instance) )
     {
-      printf("Error: cannot request to receive report\r\n");
+      TU_LOG1("Error: cannot request to receive report\r\n");
     }
   }
 }
@@ -201,7 +202,7 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
 // Invoked when device with hid interface is un-mounted
 void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance)
 {
-  printf("HID device address = %d, instance = %d is unmounted\r\n", dev_addr, instance);
+  TU_LOG1("HID device address = %d, instance = %d is unmounted\r\n", dev_addr, instance);
 
 }
 
@@ -250,28 +251,28 @@ void process_sony_ds4(uint8_t const* report, uint16_t len)
     // We need more than memcmp to check if report is different enough
     if ( diff_report(&prev_report, &ds4_report) )
     {
-      printf("(x, y, z, rz, dpad) = (%x, %x, %, %x, %x)\r\n", ds4_report.x, ds4_report.y, ds4_report.z, ds4_report.rz, ds4_report.dpad);
-      printf("DPad = %s ", dpad_str[ds4_report.dpad]);
+      TU_LOG1("(x, y, z, rz, dpad) = (%x, %x, %, %x, %x)\r\n", ds4_report.x, ds4_report.y, ds4_report.z, ds4_report.rz, ds4_report.dpad);
+      TU_LOG1("DPad = %s ", dpad_str[ds4_report.dpad]);
 
-      if (ds4_report.square   ) printf("Square ");
-      if (ds4_report.cross    ) printf("Cross ");
-      if (ds4_report.circle   ) printf("Circle ");
-      if (ds4_report.triangle ) printf("Triangle ");
+      if (ds4_report.square   ) TU_LOG1("Square ");
+      if (ds4_report.cross    ) TU_LOG1("Cross ");
+      if (ds4_report.circle   ) TU_LOG1("Circle ");
+      if (ds4_report.triangle ) TU_LOG1("Triangle ");
 
-      if (ds4_report.l1       ) printf("L1 ");
-      if (ds4_report.r1       ) printf("R1 ");
-      if (ds4_report.l2       ) printf("L2 ");
-      if (ds4_report.r2       ) printf("R2 ");
+      if (ds4_report.l1       ) TU_LOG1("L1 ");
+      if (ds4_report.r1       ) TU_LOG1("R1 ");
+      if (ds4_report.l2       ) TU_LOG1("L2 ");
+      if (ds4_report.r2       ) TU_LOG1("R2 ");
 
-      if (ds4_report.share    ) printf("Share ");
-      if (ds4_report.option   ) printf("Option ");
-      if (ds4_report.l3       ) printf("L3 ");
-      if (ds4_report.r3       ) printf("R3 ");
+      if (ds4_report.share    ) TU_LOG1("Share ");
+      if (ds4_report.option   ) TU_LOG1("Option ");
+      if (ds4_report.l3       ) TU_LOG1("L3 ");
+      if (ds4_report.r3       ) TU_LOG1("R3 ");
 
-      if (ds4_report.ps       ) printf("PS ");
-      if (ds4_report.tpad     ) printf("TPad ");
+      if (ds4_report.ps       ) TU_LOG1("PS ");
+      if (ds4_report.tpad     ) TU_LOG1("TPad ");
 
-      printf("\r\n");
+      TU_LOG1("\r\n");
     }
 
     prev_report = ds4_report;
@@ -309,6 +310,6 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
   // continue to request to receive report
   if ( !tuh_hid_receive_report(dev_addr, instance) )
   {
-    printf("Error: cannot request to receive report\r\n");
+    TU_LOG1("Error: cannot request to receive report\r\n");
   }
 }

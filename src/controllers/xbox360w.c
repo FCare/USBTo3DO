@@ -6,7 +6,7 @@ static void set_led(uint8_t dev_addr, uint8_t instance, led_state state) {
   uint8_t protocol;
   tuh_vendor_protocol_get(dev_addr, instance, &protocol);
   if (protocol == 129) {
-    printf("Can set led\n");
+    TU_LOG1("Can set led\n");
     uint8_t buffer[12] = {0x00};
     buffer[2] = 0x08;
     buffer[3] = 0x40 + state; //rotate
@@ -63,8 +63,9 @@ static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len)
   return status;
 }
 
-void mount_xbox360w(uint8_t dev_addr, uint8_t instance) {
+bool mount_xbox360w(uint8_t dev_addr, uint8_t instance) {
   set_led(dev_addr, instance, LED_ALL_BLINK);
+  return false; //Do not consider it is added. Wait for first report
 }
 
 bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance, uint8_t *controler_id, _3do_report* result) {

@@ -24,6 +24,6 @@ typedef enum {
 } led_state;
 
 extern bool map_xbox360w(void* report_p, uint8_t len, uint8_t dev_addr, uint8_t instance, uint8_t *controler_id, _3do_report* result);
-extern void mount_xbox360w(uint8_t dev_addr, uint8_t instance);
+extern bool mount_xbox360w(uint8_t dev_addr, uint8_t instance);
 
 #endif
