@@ -31,6 +31,10 @@ In case you installed the daisy chain connector, you can plug other USB adaptors
  - a 4.7uF - 10v capacitor
  - a DB9 cable extension (https://aliexpress.com/item/4000095438635.html)
 
+Here is a picture of the v1.0 PCB:  
+
+<img src="/PCB/Photos/PCB v1.0.jpg" alt="PCB V1.0" title="PCB v1.0"  width="50%">
+
 ## How to compile
  - Tested on UBUNTU 20.04
 
