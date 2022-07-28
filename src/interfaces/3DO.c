@@ -47,6 +47,8 @@ typedef enum {
 int channel[CHAN_MAX];
 uint instr_jmp[CHAN_MAX];
 
+uint max_usb_controller = 0;
+
 dma_channel_config config[CHAN_MAX];
 
 uint8_t controler_buffer[201] = {0xFF};
@@ -129,11 +131,11 @@ void on_pio0_irq() {
   pio_sm_restart(pio0, sm_output);
   pio_sm_exec(pio0, sm_output, instr_jmp[sm_output]);
 
-  memcpy(&controler_buffer[0], &currentReport[0], sizeof(currentReport[0]));
+  memcpy(&controler_buffer[0], &currentReport[0], max_usb_controller*sizeof(_3do_report));
   // printf("Report %2x\n", controler_buffer[0]);
   startDMA(CHAN_OUTPUT, &controler_buffer[0], 201);
   pio_sm_set_enabled(pio0, sm_output, true);
-  startDMA(CHAN_INPUT, &controler_buffer[2], 199);
+  startDMA(CHAN_INPUT, &controler_buffer[(max_usb_controller+1)*sizeof(_3do_report)], 199);
   pio_interrupt_clear(pio0, 0);
   irq_clear(PIO0_IRQ_0);
 }
@@ -178,6 +180,7 @@ void update_3do_status(_3do_report report, uint8_t instance) {
   memcpy(&report_value, &report, 2);
   currentReport[instance] = report_value;
   deviceAttached[instance] = true;
+  max_usb_controller = (max_usb_controller < instance)?instance:max_usb_controller;
 }
 
 _3do_report new3doPadReport() {
