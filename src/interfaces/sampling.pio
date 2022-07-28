@@ -1,11 +1,5 @@
 .program sampling
 
-; Repeatedly get one word of data from the TX FIFO, stalling when the FIFO is
-; empty. Write the least significant bit to the OUT pin group.
-
-; Pin list shall be  CDEN, CDHWR, CDCMD, CDD7, CDD6, CDD5, CDD4, CDD3, CDD2, CDD1, CDD0
-
-
 public entry_point:
     set x, 31
 .wrap_target

@@ -5,21 +5,21 @@ extern void _3DO_init();
 
 typedef struct {
   //LSB byte
-uint16_t id: 3;
-uint16_t down : 1;
-uint16_t up : 1;
-uint16_t right : 1;
-uint16_t left : 1;
 uint16_t A : 1;
+uint16_t left : 1;
+uint16_t right : 1;
+uint16_t up : 1;
+uint16_t down : 1;
+uint16_t id: 3;
 
 // MSB Byte
-uint16_t B : 1;
+uint16_t tail : 2;
 uint16_t C : 1;
 uint16_t P : 1;
 uint16_t X : 1;
 uint16_t R : 1;
 uint16_t L : 1;
-uint16_t tail : 2;
+uint16_t B : 1;
 
 } _3do_report;
 
