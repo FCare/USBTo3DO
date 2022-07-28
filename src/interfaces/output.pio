@@ -1,0 +1,32 @@
+.program output
+
+; Repeatedly get one word of data from the TX FIFO, stalling when the FIFO is
+; empty. Write the least significant bit to the OUT pin group.
+
+; Pin list shall be  CDEN, CDHWR, CDCMD, CDD7, CDD6, CDD5, CDD4, CDD3, CDD2, CDD1, CDD0
+
+.define CLK_PIN 2
+
+public entry_point:
+.wrap_target
+  wait 1 gpio CLK_PIN
+  out pins,1
+  wait 0 gpio CLK_PIN
+.wrap
+
+% c-sdk {
+
+#include "3DO.h"
+
+static inline void output_program_init(PIO pio, uint sm, uint offset) {
+    pio_sm_config c = output_program_get_default_config(offset);
+
+    sm_config_set_out_pins(&c, DATA_OUT_PIN, 1);
+    sm_config_set_out_shift(&c, true, true, 8);
+
+    // Load our configuration, and jump to the start of the program
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+
+%}

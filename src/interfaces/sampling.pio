@@ -1,0 +1,40 @@
+.program sampling
+
+; Repeatedly get one word of data from the TX FIFO, stalling when the FIFO is
+; empty. Write the least significant bit to the OUT pin group.
+
+; Pin list shall be  CDEN, CDHWR, CDCMD, CDD7, CDD6, CDD5, CDD4, CDD3, CDD2, CDD1, CDD0
+
+
+public entry_point:
+    set x, 31
+.wrap_target
+test:
+    jmp pin is_one
+    jmp is_zero
+is_one:
+    jmp x--, test
+    irq set 0
+wait_zero:
+    jmp pin wait_zero
+is_zero:
+    set x, 31
+.wrap
+
+% c-sdk {
+
+#include "3DO.h"
+
+static inline void sampling_program_init(PIO pio, uint sm, uint offset) {
+    pio_sm_config c = sampling_program_get_default_config(offset);
+
+    sm_config_set_jmp_pin(&c, CLK_PIN);
+
+    sm_config_set_clkdiv(&c, 50.0);
+
+    // Load our configuration, and jump to the start of the program
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+
+%}

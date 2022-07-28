@@ -39,11 +39,13 @@ src/controllers/saturnAdapter.c
 src/controllers/psClassic.c
 )
 
+pico_generate_pio_header(USBto3Do ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/sampling.pio)
+pico_generate_pio_header(USBto3Do ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/output.pio)
+
 # enable usb output, disable uart output
-# pico_enable_stdio_usb(USBto3Do 1)
 pico_enable_stdio_uart(USBto3Do 1)
 
 # create map/bin/hex/uf2 file etc.
 pico_add_extra_outputs(USBto3Do)
 
-target_link_libraries(USBto3Do pico_stdlib pico_multicore tinyusb_board tinyusb_host)
+target_link_libraries(USBto3Do pico_stdlib hardware_pio hardware_dma pico_multicore tinyusb_board tinyusb_host)

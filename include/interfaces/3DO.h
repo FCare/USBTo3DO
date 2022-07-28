@@ -37,4 +37,9 @@ typedef struct {
  extern void update_3do_status(_3do_report report, uint8_t instance);
  extern _3do_report new3doPadReport();
 
+ #define CLK_PIN 2 // Clk from 3do
+ #define DATA_OUT_PIN 3 // Data to 3do
+ #define DATA_IN_PIN 4 //Data pin from next controlers
+ #define CS_CTRL_PIN 5 //  Data out from 3do
+
 #endif

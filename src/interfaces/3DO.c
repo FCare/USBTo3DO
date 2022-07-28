@@ -1,29 +1,35 @@
 #include <stdio.h>
 #include <string.h>
 #include "pico/stdlib.h"
+#include "hardware/dma.h"
+#include "hardware/structs/bus_ctrl.h"
 #include "hardware/gpio.h"
+#include "hardware/irq.h"
 #include "pico/multicore.h"
+#include "sampling.pio.h"
+#include "output.pio.h"
 
 #include "3DO.h"
-
-#define CLK_PIN 2 // Clk from 3do
-#define DATA_OUT_PIN 3 // Data to 3do
-#define DATA_IN_PIN 4 //Data pin from next controlers
-#define CS_CTRL_PIN 5 //  Data out from 3do
 
 //Missing dynammic allocation of controllers
 
 #define MAX_CONTROLERS 9
 
+
+uint sm_sampling = 0;
+uint sm_output = 0;
+
+uint instr_jmp;
+
 uint16_t transmitReport[MAX_CONTROLERS]; //Only one controller at a time for the moment
 uint8_t nbBits = 0;
 uint8_t nbExternalBits = 0;
+
+volatile bool updateReport = false;
 volatile uint16_t currentReport[MAX_CONTROLERS] = {0xFFFF};
 volatile bool deviceAttached[MAX_CONTROLERS] = {false};
 volatile bool deviceReported[MAX_CONTROLERS] = {false};
 volatile uint8_t externalControllerId = MAX_CONTROLERS;
-
-volatile uint64_t lastFall = 0;
 
 enum {
   LEVEL_LOW  = (1<<0),
@@ -33,75 +39,82 @@ enum {
 } gpioMode;
 
 
+typedef enum {
+  CHAN_OUTPUT = 0,
+  CHAN_MAX
+} DMA_chan_t;
+
+int channel[CHAN_MAX];
+
+dma_channel_config config[CHAN_MAX];
+
+uint8_t controler_buffer[201] = {0};
+
+
+void startDMA(uint8_t access, uint8_t *buffer, uint32_t nbWord) {
+  dma_channel_transfer_from_buffer_now(channel[access], buffer, nbWord);
+}
+
+void setupDMA(uint8_t access) {
+  channel[access] = dma_claim_unused_channel(true);
+  config[access] = dma_channel_get_default_config(channel[access]);
+  channel_config_set_transfer_data_size(&config[access], DMA_SIZE_8);
+  channel_config_set_read_increment(&config[access], true);
+  channel_config_set_write_increment(&config[access], false);
+  channel_config_set_irq_quiet(&config[access], true);
+  channel_config_set_dreq(&config[access], DREQ_PIO0_TX0 + access);
+  dma_channel_set_write_addr(channel[access], &pio0->txf[sm_output], false);
+  dma_channel_set_config(channel[access], &config[access], false);
+
+  bus_ctrl_hw->priority = BUSCTRL_BUS_PRIORITY_DMA_W_BITS | BUSCTRL_BUS_PRIORITY_DMA_R_BITS;
+}
+
 void core1_entry() {
 
-    int val = 0;
-    bool oldState = gpio_get(CLK_PIN);
-    while (1){
-      bool state = gpio_get(CLK_PIN);
-      if (oldState != state) {
-        oldState = state;
-        if (state) {
-          //Rising edge
-          // printf("Rising edge on clock\n");
-          //input data
-          if (nbExternalBits < (MAX_CONTROLERS - externalControllerId)*16) {
-            bool val = gpio_get(DATA_IN_PIN);
-            transmitReport[externalControllerId + (nbExternalBits / 16)] |= val << (nbExternalBits % 16);
-            // printf("Got %d => [%d] %x\n", val, externalControllerId + (nbExternalBits / 16), transmitReport[externalControllerId + (nbExternalBits / 16)]);
-            nbExternalBits++;
-          }
-          //output data
-          int idControler = nbBits >> 4;
-          if (idControler >= MAX_CONTROLERS) idControler = MAX_CONTROLERS - 1;
-          gpio_put(DATA_OUT_PIN, transmitReport[idControler] & 0x1);
-          transmitReport[idControler] = (transmitReport[idControler]>>1) | 0x8000;
-          if (nbBits < 16*MAX_CONTROLERS -1) nbBits++;
+}
 
-        } else {
-          //Falling edge
-          uint64_t start = time_us_64();
-          if ((start - lastFall) >= 800) {
-            bool externalFound = false;
-            externalControllerId = MAX_CONTROLERS;
-            for (int i =0; i<MAX_CONTROLERS; i++) {
-              transmitReport[i] = currentReport[i];
-              deviceReported[i] = deviceAttached[i];
-              if (!externalFound && !deviceReported[i]) {
-                externalControllerId = i;
-                externalFound = true;
-              }
-            }
-            for (int i= externalControllerId; i<MAX_CONTROLERS; i++) {
-              //Clear report from external controlers
-              transmitReport[i] = 0x0;
-            }
-            gpio_put(DATA_OUT_PIN, transmitReport[0] & 0x1);
-            transmitReport[0] = (transmitReport[0]>>1) | 0x8000;
-            nbBits = 1;
-            nbExternalBits = 0;
-          }
-          lastFall = start;
-        }
-      }
-    }
+// pio0 interrupt handler
+void on_pio0_irq() {
+  updateReport = true;
+  dma_channel_abort(CHAN_OUTPUT);
+  pio_sm_drain_tx_fifo(pio0, sm_output);
+  pio_sm_restart(pio0, sm_output);
+  pio_sm_exec(pio0, sm_output, instr_jmp);
+  pio_sm_set_enabled(pio0, sm_output, true);
+
+  memcpy(&controler_buffer[0], &currentReport[0], sizeof(currentReport[0]));
+  // printf("Report %2x\n", controler_buffer[0]);
+  startDMA(CHAN_OUTPUT, &controler_buffer[0], 201);
+  pio_interrupt_clear(pio0, 0);
+  irq_clear(PIO0_IRQ_0);
 }
 
 void _3DO_init() {
+  uint offset;
   stdio_init_all();
   gpio_init(CLK_PIN);
   gpio_set_dir(CLK_PIN, GPIO_IN); //Input
-  gpio_init(DATA_IN_PIN);
-  gpio_set_dir(DATA_IN_PIN, GPIO_IN); //Input
-  gpio_pull_up(DATA_IN_PIN);
-  gpio_init(DATA_OUT_PIN);
-  gpio_set_dir(DATA_OUT_PIN, GPIO_OUT); //Output
-  gpio_put(DATA_OUT_PIN, 1);
-  gpio_init(CS_CTRL_PIN);
-  gpio_set_dir(CS_CTRL_PIN, GPIO_IN); //Input
 
+  pio_set_irq0_source_enabled(pio0, pis_interrupt0, true);
+  irq_set_exclusive_handler(PIO0_IRQ_0, on_pio0_irq);
+  irq_set_enabled(PIO0_IRQ_0, true);
 
-  gpio_set_drive_strength(DATA_OUT_PIN, GPIO_DRIVE_STRENGTH_12MA);
+  sm_sampling = CHAN_MAX;
+  offset = pio_add_program(pio0, &sampling_program);
+  sampling_program_init(pio0, sm_sampling, offset);
+
+  sm_output = CHAN_OUTPUT;
+  offset = pio_add_program(pio0, &output_program);
+  output_program_init(pio0, sm_output, offset);
+
+  instr_jmp = pio_encode_jmp(offset);
+
+  for (int i=0; i< CHAN_MAX; i++) {
+    setupDMA(i);
+  }
+
+  pio_gpio_init(pio0, DATA_OUT_PIN);
+  pio_sm_set_consecutive_pindirs(pio0, sm_output, DATA_OUT_PIN, 1, true);
 
   multicore_launch_core1(core1_entry);
 }
