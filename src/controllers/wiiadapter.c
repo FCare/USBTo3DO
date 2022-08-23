@@ -39,7 +39,7 @@ bool map_wii_classic_adapter(void* report_p, uint8_t len, uint8_t dev_addr, uint
   printf("(up, down, left, right) (%d %d %d %d) (X,P,A,B,C,L,R)(%d %d %d %d %d %d %d)\n",
         result->up, result->down, result->left, result->right, result->X, result->P, result->A, result->B, result->C, result->L, result->R);
 #endif
-  res = (void **)(&result);
+  *res = (void *)(result);
 
   return true;
 }

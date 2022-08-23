@@ -4,6 +4,9 @@
 
 #include "xbox360w.h"
 
+controler_type controler_mode[MAX_CONTROLERS] = {JOYPAD};
+bool lastMode[MAX_CONTROLERS] = {0};
+
 static void set_led(uint8_t dev_addr, uint8_t instance, led_state state) {
   uint8_t protocol;
   tuh_vendor_protocol_get(dev_addr, instance, &protocol);
@@ -66,6 +69,8 @@ static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len)
 }
 
 bool mount_xbox360w(uint8_t dev_addr, uint8_t instance) {
+  controler_mode[instance] = JOYPAD;
+  lastMode[instance] = 1; //First report gets BTN Mode UP
   set_led(dev_addr, instance, LED_ALL_BLINK);
   return false; //Do not consider it is added. Wait for first report
 }
@@ -74,38 +79,84 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
     uint8_t * int_report = (uint8_t *)report_p;
     *controler_id = instance;
 
-    _3do_joypad_report *result = malloc(sizeof(_3do_joypad_report));
-    *result = new3doPadReport();
-    *type = JOYPAD;
 
     if (len == 2) {
       if ((int_report[0] & 0x08) && ((int_report[1] & 0x80) != 0)) {
-        set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
+        if (controler_mode[instance] == JOYPAD)
+          set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
+        else
+          set_led(dev_addr, instance, LED_ROTATE_TWO_LIGHTS);
         return false;
       }
     }
+
 
   if ((int_report[0] == 0x0) && (int_report[0] == 0x1)) return false;
 
   xbox360_report report  = handle_xbox360_report(&int_report[4],len - 5);
 
-  result->up = report.BTN_TRIGGER_HAPPY3 || (report.ABS_Y > 22500);
-  result->down = report.BTN_TRIGGER_HAPPY4 || (report.ABS_Y < -22500);
-  result->left = report.BTN_TRIGGER_HAPPY1 || (report.ABS_X < -22500);
-  result->right = report.BTN_TRIGGER_HAPPY2 || (report.ABS_X > 22500);;
-  result->X = report.BTN_START;
-  result->P = report.BTN_SELECT || report.BTN_Y;
-  result->A = report.BTN_X;
-  result->B = report.BTN_A;
-  result->C = report.BTN_B;
-  result->L = report.BTN_TL || (report.BTN_TL2 != 0);
-  result->R = report.BTN_TR || (report.BTN_TR2 != 0);
+  if (report.BTN_MODE != lastMode[instance]) {
+    lastMode[instance] = report.BTN_MODE;
+    if (report.BTN_MODE) {
+      controler_mode[instance] = (controler_mode[instance] == JOYPAD)?JOYSTICK:JOYPAD;
+    }
+    if (controler_mode[instance] == JOYPAD)
+      set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
+    else
+      set_led(dev_addr, instance, LED_ROTATE_TWO_LIGHTS);
+  }
 
-  CTRL_DEBUG("Touch 0x%X (down %d up %d right %d left %d A %d B %d C %d P %d X %d R %d L %d)\n",
-result, result->down, result->up, result->right, result->left, result->A, result->B, result->C,
-result->P, result->X, result->R, result->L );
+  *type = controler_mode[instance];
 
-  *res = (void *)(result);
+  if (controler_mode[instance] == JOYPAD) {
+    _3do_joypad_report *result = malloc(sizeof(_3do_joypad_report));
+    *result = new3doPadReport();
+    result->up = report.BTN_TRIGGER_HAPPY3 || (report.ABS_Y > 22500) || (report.ABS_RY > 22500);
+    result->down = report.BTN_TRIGGER_HAPPY4 || (report.ABS_Y < -22500) || (report.ABS_RY < -22500);
+    result->left = report.BTN_TRIGGER_HAPPY1 || (report.ABS_X < -22500)|| (report.ABS_RX < -22500);
+    result->right = report.BTN_TRIGGER_HAPPY2 || (report.ABS_X > 22500)|| (report.ABS_RX > 22500);
+    result->X = report.BTN_START;
+    result->P = report.BTN_SELECT || report.BTN_Y;
+    result->A = report.BTN_X;
+    result->B = report.BTN_A;
+    result->C = report.BTN_B;
+    result->L = report.BTN_TL || (report.BTN_TL2 != 0);
+    result->R = report.BTN_TR || (report.BTN_TR2 != 0);
+
+    CTRL_DEBUG("Touch 0x%X (down %d up %d right %d left %d A %d B %d C %d P %d X %d R %d L %d)\n",
+    result, result->down, result->up, result->right, result->left, result->A, result->B, result->C,
+    result->P, result->X, result->R, result->L );
+      *res = (void *)(result);
+  }
+
+  if (controler_mode[instance] == JOYPAD) {
+    _3do_joystick_report *result = malloc(sizeof(_3do_joystick_report));
+    *result = new3doStickReport();
+
+
+    result->v_pos = (report.ABS_Y + 32768) >> 8;
+    result->h_pos = (report.ABS_X + 32768) >> 8;
+    if (report.ABS_Z >= 0)
+      result->d_pos = report.ABS_Z;
+    else
+      result->d_pos = report.ABS_Z + 255;
+    if (report.ABS_RZ >= 0)
+        result->FIRE = 0;
+      else
+        result->FIRE = 1;
+    result->up = report.BTN_TRIGGER_HAPPY3 || (report.ABS_RY > 22500);
+    result->down = report.BTN_TRIGGER_HAPPY4 || (report.ABS_RY < -22500);
+    result->left = report.BTN_TRIGGER_HAPPY1 || (report.ABS_RX < -22500);
+    result->right = report.BTN_TRIGGER_HAPPY2 || (report.ABS_RX > 22500);
+    result->X = report.BTN_START;
+    result->P = report.BTN_SELECT || report.BTN_Y;
+    result->A = report.BTN_X;
+    result->B = report.BTN_A;
+    result->C = report.BTN_B;
+    result->L = report.BTN_TL || (report.BTN_TL2 != 0);
+    result->R = report.BTN_TR || (report.BTN_TR2 != 0);
+    *res = (void *)(result);
+  }
 
   return true;
 }

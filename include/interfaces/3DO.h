@@ -1,6 +1,8 @@
 #ifndef __3DO_INTERFACE_H_INCLUDE__
 #define __3DO_INTERFACE_H_INCLUDE__
 
+#define MAX_CONTROLERS 9
+
 extern void _3DO_init();
 
 typedef struct {
@@ -26,7 +28,7 @@ uint16_t B : 1;
 typedef struct {
 uint8_t id_0;
 uint8_t id_1;
-uint8_t length;
+uint8_t id_2;
 
 uint32_t unset_3  :2;
 uint32_t d_pos    :10;

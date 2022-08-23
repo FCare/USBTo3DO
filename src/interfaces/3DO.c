@@ -13,9 +13,6 @@
 
 //Missing dynammic allocation of controllers
 
-#define MAX_CONTROLERS 9
-
-
 uint sm_sampling = 0;
 uint sm_output = 0;
 
@@ -183,4 +180,12 @@ _3do_joypad_report new3doPadReport() {
   return report;
 }
 
+_3do_joystick_report new3doStickReport() {
+  _3do_joystick_report report;
+  report.id_0 = 0x01;
+  report.id_1 = 0x7B;
+  report.id_2 = 0x08;
+  report.tail = 0x02;
+  return report;
+}
 
