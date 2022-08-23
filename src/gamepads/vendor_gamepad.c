@@ -26,6 +26,8 @@
 #include "bsp/board.h"
 #include "tusb.h"
 
+#include <stdlib.h>
+
 #include "3DO.h"
 #include "8bitdo.h"
 #include "xbox360w.h"
@@ -46,7 +48,7 @@ static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
 
 void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
 {
-  _3do_report init = new3doPadReport();
+  _3do_joypad_report init = new3doPadReport();
   TU_LOG1("VENDOR device address = %d, instance = %d is mounted %x %x %d \r\n", dev_addr, instance, desc_report[0], desc_report[1], desc_len);
   uint16_t vid, pid;
   bool newControllerAdded = true;
@@ -69,7 +71,7 @@ void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc
   {
     TU_LOG1("Error: cannot request to receive report\r\n");
   }
-  if (newControllerAdded) update_3do_status(init, instance); //Send empty report to detect gamepad
+  if (newControllerAdded) update_3do_joypad(init, instance); //Send empty report to detect gamepad
 }
 
 void tuh_vendor_umount_cb(uint8_t dev_addr, uint8_t instance)
@@ -88,12 +90,17 @@ tuh_vid_pid_get(dev_addr, &vid, &pid);
 if (currentMapping == NULL) return;
 if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
   uint8_t id;
-  _3do_report newreport = new3doPadReport();
-  if (currentMapping->mapper(report, len, dev_addr, instance, &id, &newreport)) {
-    update_3do_status(newreport, id);
+  void *newReport = NULL;
+  controler_type type;
+  if (currentMapping->mapper(report, len, dev_addr, instance, &id, &type, &newReport)) {
+    if (type == JOYPAD)
+      update_3do_joypad(*((_3do_joypad_report*)newReport), id);
+    // if (type == JOYSTICK)
+    //  update_3do_joystick(*((_3do_joystick_report*)newReport), id);
   } else {
-    update_3do_status(new3doPadReport(), id);
+    update_3do_joypad(new3doPadReport(), id);
   }
+  if(newReport != NULL) free(newReport);
 }
 
 

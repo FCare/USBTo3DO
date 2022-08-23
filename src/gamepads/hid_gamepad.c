@@ -26,6 +26,8 @@
 #include "bsp/board.h"
 #include "tusb.h"
 
+#include <stdlib.h>
+
 #include "3DO.h"
 #include "hid_gamepad.h"
 
@@ -289,12 +291,21 @@ void process_hid(uint8_t const* report, int8_t dev_addr, uint8_t instance, uint1
     hid_report_t hid_report;
     memcpy(&hid_report, report, sizeof(hid_report));
     uint8_t id;
-    _3do_report newreport = new3doPadReport();
-    if (currentMapping->mapper(&hid_report, len, dev_addr, instance, &id, &newreport)) {
-      update_3do_status(newreport, id);
+    void *newReport = NULL;
+    controler_type type;
+    TU_LOG1("New report\n");
+    if (currentMapping->mapper(&hid_report, len, dev_addr, instance, &id, &type, &newReport)) {
+      if (newReport != NULL) {
+        if (type == JOYPAD) {
+          TU_LOG1("Update joypad %p %p\n", newReport, &newReport);
+          update_3do_joypad(*((_3do_joypad_report*)newReport), id);
+        }
+      }
+      // if (type == JOYSTICK)
+      //  update_3do_joystick(*((_3do_joystick_report*)newReport), id);
     }
+    if(newReport != NULL) free(newReport);
   }
-
 }
 
 // Invoked when received report from device via interrupt endpoint

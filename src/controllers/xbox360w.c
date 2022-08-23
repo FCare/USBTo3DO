@@ -1,5 +1,7 @@
 #include "bsp/board.h"
 
+#include <stdlib.h>
+
 #include "xbox360w.h"
 
 static void set_led(uint8_t dev_addr, uint8_t instance, led_state state) {
@@ -68,9 +70,13 @@ bool mount_xbox360w(uint8_t dev_addr, uint8_t instance) {
   return false; //Do not consider it is added. Wait for first report
 }
 
-bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance, uint8_t *controler_id, _3do_report* result) {
+bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance, uint8_t *controler_id, controler_type* type, void** res) {
     uint8_t * int_report = (uint8_t *)report_p;
     *controler_id = instance;
+
+    _3do_joypad_report *result = malloc(sizeof(_3do_joypad_report));
+    *result = new3doPadReport();
+    *type = JOYPAD;
 
     if (len == 2) {
       if ((int_report[0] & 0x08) && ((int_report[1] & 0x80) != 0)) {
@@ -98,5 +104,8 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
   CTRL_DEBUG("Touch 0x%X (down %d up %d right %d left %d A %d B %d C %d P %d X %d R %d L %d)\n",
 result, result->down, result->up, result->right, result->left, result->A, result->B, result->C,
 result->P, result->X, result->R, result->L );
+
+  *res = (void *)(result);
+
   return true;
 }

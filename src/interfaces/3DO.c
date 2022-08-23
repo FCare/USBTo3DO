@@ -131,11 +131,10 @@ void on_pio0_irq() {
   pio_sm_restart(pio0, sm_output);
   pio_sm_exec(pio0, sm_output, instr_jmp[sm_output]);
 
-  memcpy(&controler_buffer[0], &currentReport[0], max_usb_controller*sizeof(_3do_report));
-  // printf("Report %2x\n", controler_buffer[0]);
+  memcpy(&controler_buffer[0], &currentReport[0], max_usb_controller*sizeof(_3do_joypad_report));
   startDMA(CHAN_OUTPUT, &controler_buffer[0], 201);
   pio_sm_set_enabled(pio0, sm_output, true);
-  startDMA(CHAN_INPUT, &controler_buffer[(max_usb_controller+1)*sizeof(_3do_report)], 199);
+  startDMA(CHAN_INPUT, &controler_buffer[(max_usb_controller+1)*sizeof(_3do_joypad_report)], 199);
   pio_interrupt_clear(pio0, 0);
   irq_clear(PIO0_IRQ_0);
 }
@@ -149,42 +148,36 @@ void _3DO_init() {
   pio_set_irq0_source_enabled(pio0, pis_interrupt0, true);
   irq_set_exclusive_handler(PIO0_IRQ_0, on_pio0_irq);
   irq_set_enabled(PIO0_IRQ_0, true);
-
   sm_sampling = CHAN_MAX;
   offset = pio_add_program(pio0, &sampling_program);
   sampling_program_init(pio0, sm_sampling, offset);
-
   sm_output = CHAN_OUTPUT;
   offset = pio_add_program(pio0, &output_program);
   output_program_init(pio0, sm_output, offset);
 
   instr_jmp[sm_output] = pio_encode_jmp(offset);
-
   setupDMAOutput();
   setupDMAInput();
-
   pio_gpio_init(pio0, DATA_IN_PIN);
   gpio_pull_up(DATA_IN_PIN);
   pio_sm_set_consecutive_pindirs(pio0, sm_output, DATA_IN_PIN, 1, false);
-
   pio_gpio_init(pio0, DATA_OUT_PIN);
   pio_sm_set_consecutive_pindirs(pio0, sm_output, DATA_OUT_PIN, 1, true);
-
   multicore_launch_core1(core1_entry);
 }
 
 
-void update_3do_status(_3do_report report, uint8_t instance) {
+void update_3do_joypad(_3do_joypad_report report, uint8_t instance) {
   if (instance >= MAX_CONTROLERS) return;
   uint16_t report_value;
   memcpy(&report_value, &report, 2);
   currentReport[instance] = report_value;
   deviceAttached[instance] = true;
-  max_usb_controller = (max_usb_controller < instance)?instance:max_usb_controller;
+  max_usb_controller = (max_usb_controller < (instance+1))?(instance+1):max_usb_controller;
 }
 
-_3do_report new3doPadReport() {
-  _3do_report report;
+_3do_joypad_report new3doPadReport() {
+  _3do_joypad_report report;
   report.id = 0b100;
   report.tail = 0b00;
   return report;

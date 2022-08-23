@@ -2,6 +2,7 @@
 #define _XBOX_360_CONTROLLER_H_
 
 #define CTRL_DEBUG //printf
+// #define _DEBUG_MAPPER_
 
 
 typedef struct

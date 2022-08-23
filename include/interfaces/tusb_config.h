@@ -67,7 +67,7 @@
 #define CFG_TUSB_MEM_ALIGN          __attribute__ ((aligned(4)))
 #endif
 
-// #define CFG_TUSB_DEBUG              3
+// #define CFG_TUSB_DEBUG              1
 
 //--------------------------------------------------------------------
 // CONFIGURATION

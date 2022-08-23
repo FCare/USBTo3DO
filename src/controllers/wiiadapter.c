@@ -1,13 +1,15 @@
 #include "bsp/board.h"
 
+#include <stdlib.h>
+
 #include "wiiadapter.h"
 #include "hid_gamepad.h"
 
 static uint8_t oldReport[2][7];
 
-bool map_wii_classic_adapter(void* report_p, uint8_t len, uint8_t dev_addr, uint8_t instance, uint8_t *controler_id, _3do_report* result) {
+bool map_wii_classic_adapter(void* report_p, uint8_t len, uint8_t dev_addr, uint8_t instance, uint8_t *controler_id, controler_type* type, void** res) {
   uint8_t* report = (uint8_t *)report_p;
-#if 0
+#ifdef _DEBUG_MAPPER_
 //used for mapping debug
   if (memcmp(&oldReport[instance], report, 7) != 0)
     printf("%x %x %x %x %x %x %x, \r\n", report[0],report[1],report[2],report[3],report[4],report[5],report[6]);
@@ -15,6 +17,10 @@ bool map_wii_classic_adapter(void* report_p, uint8_t len, uint8_t dev_addr, uint
 #endif
 
   *controler_id = instance;
+
+  _3do_joypad_report *result = malloc(sizeof(_3do_joypad_report));
+  *result = new3doPadReport();
+  *type = JOYPAD;
 
   result->up = (((report[5]&0xF) == 0x0)||((report[5]&0xF) == 0x1)||((report[5]&0xF) == 0x7))?1:0;
   result->down = (((report[5]&0xF) == 0x3)||((report[5]&0xF) == 0x4)||((report[5]&0xF) == 0x5))?1:0;
@@ -28,10 +34,12 @@ bool map_wii_classic_adapter(void* report_p, uint8_t len, uint8_t dev_addr, uint
   result->L = (report[6]>>2)&0x1;
   result->R = (report[6]>>3)&0x1;
 
-#if 0
+#ifdef _DEBUG_MAPPER_
   //used for mapping debug
   printf("(up, down, left, right) (%d %d %d %d) (X,P,A,B,C,L,R)(%d %d %d %d %d %d %d)\n",
         result->up, result->down, result->left, result->right, result->X, result->P, result->A, result->B, result->C, result->L, result->R);
 #endif
+  res = (void **)(&result);
+
   return true;
 }
