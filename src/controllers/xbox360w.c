@@ -1,6 +1,7 @@
 #include "bsp/board.h"
 
 #include <stdlib.h>
+#include <math.h>
 
 #include "xbox360w.h"
 
@@ -157,16 +158,34 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
     *result = new3doStickReport();
 
     uint8_t h_pos = (((int32_t)report.ABS_X + 0x8000) >> 8) & 0xFF;
-    uint8_t d_pos = ((0x7FFF - (int32_t)report.ABS_Y ) >> 8) & 0xFF;
+    uint8_t v_pos = ((0x7FFF - (int32_t)report.ABS_Y ) >> 8) & 0xFF;
 
     uint8_t accel = report.ABS_Z;
     uint8_t brake = report.ABS_RZ;
+    uint32_t length = sqrt((h_pos - 128)*(h_pos-128) + (v_pos-128)*(v_pos-128));
 
+    int x = h_pos - 128;
+    int y = v_pos - 128;
 
-    int8_t v_pos = (int8_t)(((((int16_t)accel - (int16_t)brake)>>1) + 0x80) & 0xFF);
-    result->analog1 = h_pos;
-    result->analog2 = (v_pos >> 2);
-    result->analog3 = ((v_pos & 0x3)<<6) | ((d_pos & 0xF0)>>4);
+    int ax = abs(x);
+    int ay = abs(y);
+
+    double ratio = 1;
+    if ((ax != 0) && (ay != 0)) ratio = (double)length/(double)((ax>=ay)?ax:ay);
+
+    y = (int)(y*ratio + 128);
+    x = (int)(x*ratio + 128);
+
+    y = (y>255)?255:y;
+    y = (y<0)?0:y;
+
+    x = (x>255)?255:x;
+    x = (x<0)?0:x;
+
+    int8_t d_pos = (int8_t)(((((int16_t)accel - (int16_t)brake)>>1) + 0x80) & 0xFF);
+    result->analog1 = x;
+    result->analog2 = (y >> 2);
+    result->analog3 = ((y & 0x3)<<6) | ((d_pos & 0xF0)>>4);
     result->analog4 = ((d_pos & 0x0F)<<4) | 0x2;
 
     result->FIRE = report.BTN_Y;
