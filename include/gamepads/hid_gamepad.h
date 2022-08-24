@@ -45,4 +45,6 @@ typedef struct TU_ATTR_PACKED
 
 } hid_report_t;
 
+extern void hid_gamepad_tick(void);
+
 #endif

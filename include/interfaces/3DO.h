@@ -52,19 +52,22 @@ uint8_t P     : 1;
 } _3do_joystick_report;
 
 typedef enum{
-  JOYPAD = 0,
+  NONE = 0,
+  JOYPAD,
   JOYSTICK
 } controler_type;
 
 
 typedef bool (*mapper)(void *, uint8_t len, uint8_t dev_addr, uint8_t instance, uint8_t *controler_id, controler_type* type, void** res);
 typedef bool (*mountFunc)(uint8_t, uint8_t );
+typedef void (*tick)(void);
 
 typedef struct {
    uint16_t vid;
    uint16_t pid;
    mapper mapper;
    mountFunc mount;
+   tick tick;
  } mapping_3do;
 
  extern void update_3do_joypad(_3do_joypad_report report, uint8_t instance);

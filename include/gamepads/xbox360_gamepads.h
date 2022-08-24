@@ -40,4 +40,6 @@ typedef struct
  int8_t BTN_Y;
 } xbox360_report;
 
+void vendor_gamepad_tick(void);
+
 #endif

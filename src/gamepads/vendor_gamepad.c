@@ -41,10 +41,17 @@ static mapping_3do *currentMapping = NULL;
 
 #define NB_GAMEPAD_SUPPORTED 2
 static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
-  {0x045e, 0x028e, map_8bitDo, NULL}, //045e:028e 8bitDo - M30 seen as Xbox360 controller
-  {0x045e, 0x2a9, map_xbox360w, mount_xbox360w}, //Xbox 360 wireless receiver
+  {0x045e, 0x028e, map_8bitDo, NULL, NULL}, //045e:028e 8bitDo - M30 seen as Xbox360 controller
+  {0x045e, 0x2a9, map_xbox360w, mount_xbox360w, led_xbox360w}, //Xbox 360 wireless receiver
   // {0x046d, 0xc21d, map_8bitDo} //Logitech F310
 };
+
+void vendor_gamepad_tick(void) {
+  if (currentMapping != NULL) {
+    if (currentMapping->tick != NULL)
+      currentMapping->tick();
+  }
+}
 
 void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
 {

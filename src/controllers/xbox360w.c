@@ -4,7 +4,8 @@
 
 #include "xbox360w.h"
 
-controler_type controler_mode[MAX_CONTROLERS] = {JOYPAD};
+controler_type controler_mode[MAX_CONTROLERS] = {NONE};
+uint8_t controler_addr[MAX_CONTROLERS] = {0};
 bool lastMode[MAX_CONTROLERS] = {0};
 
 static void set_led(uint8_t dev_addr, uint8_t instance, led_state state) {
@@ -71,8 +72,18 @@ static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len)
 bool mount_xbox360w(uint8_t dev_addr, uint8_t instance) {
   controler_mode[instance] = JOYPAD;
   lastMode[instance] = 1; //First report gets BTN Mode UP
+  controler_addr[instance] = dev_addr;
   set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
   return false; //Do not consider it is added. Wait for first report
+}
+static int mode = 0;
+
+void led_xbox360w(void) {
+  for (int i = 0; i<MAX_CONTROLERS; i++) {
+    if (controler_mode[i] == JOYSTICK)
+        set_led(controler_addr[i], i, LED_TOP_LEFT_ON + (i+mode)%4);
+  }
+  mode = !mode;
 }
 
 bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance, uint8_t *controler_id, controler_type* type, void** res) {
@@ -82,10 +93,6 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
 
     if (len == 2) {
       if ((int_report[0] & 0x08) && ((int_report[1] & 0x80) != 0)) {
-        if (controler_mode[instance] == JOYPAD)
-          set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
-        else
-          set_led(dev_addr, instance, LED_ROTATE);
         return false;
       }
     }
@@ -99,10 +106,7 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
     if (report.BTN_MODE) {
       controler_mode[instance] = (controler_mode[instance] == JOYPAD)?JOYSTICK:JOYPAD;
     }
-    if (controler_mode[instance] == JOYPAD)
-      set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
-    else
-      set_led(dev_addr, instance, LED_ROTATE);
+    set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
   }
 
   *type = controler_mode[instance];

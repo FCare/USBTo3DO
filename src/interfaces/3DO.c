@@ -109,8 +109,11 @@ void print_dma_ctrl(dma_channel_hw_t *channel) {
 }
 
 void core1_entry() {
-  // while(1) {
-  // }
+  while(1) {
+    vendor_gamepad_tick();
+    hid_gamepad_tick();
+    sleep_ms(500);
+  }
 }
 
 // pio0 interrupt handler
