@@ -93,10 +93,12 @@ if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
   void *newReport = NULL;
   controler_type type;
   if (currentMapping->mapper(report, len, dev_addr, instance, &id, &type, &newReport)) {
-    if (type == JOYPAD)
+    if (type == JOYPAD) {
       update_3do_joypad(*((_3do_joypad_report*)newReport), id);
-    // if (type == JOYSTICK)
-    //  update_3do_joystick(*((_3do_joystick_report*)newReport), id);
+    }
+    if (type == JOYSTICK) {
+      update_3do_joystick(*((_3do_joystick_report*)newReport), id);
+    }
   } else {
     update_3do_joypad(new3doPadReport(), id);
   }

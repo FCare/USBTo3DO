@@ -71,7 +71,7 @@ static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len)
 bool mount_xbox360w(uint8_t dev_addr, uint8_t instance) {
   controler_mode[instance] = JOYPAD;
   lastMode[instance] = 1; //First report gets BTN Mode UP
-  set_led(dev_addr, instance, LED_ALL_BLINK);
+  set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
   return false; //Do not consider it is added. Wait for first report
 }
 
@@ -85,13 +85,12 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
         if (controler_mode[instance] == JOYPAD)
           set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
         else
-          set_led(dev_addr, instance, LED_ROTATE_TWO_LIGHTS);
+          set_led(dev_addr, instance, LED_ROTATE);
         return false;
       }
     }
 
-
-  if ((int_report[0] == 0x0) && (int_report[0] == 0x1)) return false;
+  if ((int_report[0] == 0x0) && (int_report[1] == 0x0)) return false;
 
   xbox360_report report  = handle_xbox360_report(&int_report[4],len - 5);
 
@@ -103,7 +102,7 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
     if (controler_mode[instance] == JOYPAD)
       set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
     else
-      set_led(dev_addr, instance, LED_ROTATE_TWO_LIGHTS);
+      set_led(dev_addr, instance, LED_ROTATE);
   }
 
   *type = controler_mode[instance];
@@ -129,32 +128,42 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
       *res = (void *)(result);
   }
 
-  if (controler_mode[instance] == JOYPAD) {
+  if (controler_mode[instance] == JOYSTICK) {
     _3do_joystick_report *result = malloc(sizeof(_3do_joystick_report));
     *result = new3doStickReport();
 
+    uint8_t h_pos = (((int32_t)report.ABS_X + 0x8000) >> 8) & 0xFF;
+    uint8_t d_pos = ((0x7FFF - (int32_t)report.ABS_Y ) >> 8) & 0xFF;
 
-    result->v_pos = (report.ABS_Y + 32768) >> 8;
-    result->h_pos = (report.ABS_X + 32768) >> 8;
-    if (report.ABS_Z >= 0)
-      result->d_pos = report.ABS_Z;
-    else
-      result->d_pos = report.ABS_Z + 255;
-    if (report.ABS_RZ >= 0)
-        result->FIRE = 0;
-      else
-        result->FIRE = 1;
+    uint8_t accel = report.ABS_Z;
+    uint8_t brake = report.ABS_RZ;
+
+
+    int8_t v_pos = (int8_t)(((((int16_t)accel - (int16_t)brake)>>1) + 0x80) & 0xFF);
+    result->analog1 = h_pos;
+    result->analog2 = (v_pos >> 2);
+    result->analog3 = ((v_pos & 0x3)<<6) | ((d_pos & 0xF0)>>4);
+    result->analog4 = ((d_pos & 0x0F)<<4) | 0x2;
+
+    result->FIRE = report.BTN_Y;
     result->up = report.BTN_TRIGGER_HAPPY3 || (report.ABS_RY > 22500);
     result->down = report.BTN_TRIGGER_HAPPY4 || (report.ABS_RY < -22500);
     result->left = report.BTN_TRIGGER_HAPPY1 || (report.ABS_RX < -22500);
     result->right = report.BTN_TRIGGER_HAPPY2 || (report.ABS_RX > 22500);
     result->X = report.BTN_START;
-    result->P = report.BTN_SELECT || report.BTN_Y;
+    result->P = report.BTN_SELECT;
     result->A = report.BTN_X;
     result->B = report.BTN_A;
     result->C = report.BTN_B;
-    result->L = report.BTN_TL || (report.BTN_TL2 != 0);
-    result->R = report.BTN_TR || (report.BTN_TR2 != 0);
+    result->L = report.BTN_TL;
+    result->R = report.BTN_TR;
+
+    CTRL_DEBUG("Touch 0x%X (down %d up %d right %d left %d A %d B %d C %d P %d X %d R %d L %d FIRE %d)\n",
+    result, result->down, result->up, result->right, result->left, result->A, result->B, result->C,
+    result->P, result->X, result->R, result->L, result->FIRE );
+
+    CTRL_DEBUG("brake %d accel %d v_pos %d h_pos %d d_pos %d ABS_Z %x ABS_RZ %x\n",brake, accel, (uint8_t)v_pos, (uint8_t)h_pos, (uint8_t)d_pos, (int32_t)report.ABS_Z , (int32_t)report.ABS_RZ);
+
     *res = (void *)(result);
   }
 

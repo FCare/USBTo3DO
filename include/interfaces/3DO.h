@@ -30,25 +30,25 @@ uint8_t id_0;
 uint8_t id_1;
 uint8_t id_2;
 
-uint32_t unset_3  :2;
-uint32_t d_pos    :10;
-uint32_t v_pos    :10;
-uint32_t h_pos    :10;
+uint8_t analog1;
+uint8_t analog2;
+uint8_t analog3;
+uint8_t analog4;
 
-uint16_t tail  : 4;
-uint16_t R     : 1;
-uint16_t L     : 1;
-uint16_t X     : 1;
-uint16_t P     : 1;
-uint16_t left  : 1;
-uint16_t right : 1;
-uint16_t down  : 1;
-uint16_t up    : 1;
-uint16_t C     : 1;
-uint16_t B     : 1;
-uint16_t A     : 1;
-uint16_t FIRE  : 1;
+uint8_t left  : 1;
+uint8_t right : 1;
+uint8_t down  : 1;
+uint8_t up    : 1;
+uint8_t C     : 1;
+uint8_t B     : 1;
+uint8_t A     : 1;
+uint8_t FIRE  : 1;
 
+uint8_t tail  : 4;
+uint8_t R     : 1;
+uint8_t L     : 1;
+uint8_t X     : 1;
+uint8_t P     : 1;
 } _3do_joystick_report;
 
 typedef enum{

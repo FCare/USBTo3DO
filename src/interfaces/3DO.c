@@ -22,7 +22,8 @@ uint8_t nbBits = 0;
 uint8_t nbExternalBits = 0;
 
 volatile bool updateReport = false;
-uint16_t currentReport[MAX_CONTROLERS] = {0xFFFF};
+uint8_t currentReport[MAX_CONTROLERS][9] = {0xFF};
+uint8_t currentReportSize[MAX_CONTROLERS] = {0};
 volatile bool deviceAttached[MAX_CONTROLERS] = {false};
 volatile bool deviceReported[MAX_CONTROLERS] = {false};
 volatile uint8_t externalControllerId = MAX_CONTROLERS;
@@ -107,20 +108,14 @@ void print_dma_ctrl(dma_channel_hw_t *channel) {
            ctrl & DMA_CH0_CTRL_TRIG_EN_BITS ? 1 : 0);
 }
 
-volatile uint8_t external_buffer = 0;
-
 void core1_entry() {
   // while(1) {
-  //   uint32_t val = pio_sm_get_blocking(pio0, sm_output);
-  //   printf("%d => val %x\n", external_buffer, val);
-  //   controler_buffer[external_buffer++] = (uint8_t)val;
   // }
 }
 
 // pio0 interrupt handler
 void on_pio0_irq() {
   updateReport = true;
-  external_buffer = 2;
   dma_channel_abort(channel[CHAN_OUTPUT]);
   dma_channel_abort(channel[CHAN_INPUT]);
   pio_sm_drain_tx_fifo(pio0, sm_output);
@@ -128,10 +123,14 @@ void on_pio0_irq() {
   pio_sm_restart(pio0, sm_output);
   pio_sm_exec(pio0, sm_output, instr_jmp[sm_output]);
 
-  memcpy(&controler_buffer[0], &currentReport[0], max_usb_controller*sizeof(_3do_joypad_report));
+  int totalReportSize = 0;
+  for (int i = 0; i<max_usb_controller; i++) {
+    memcpy(&controler_buffer[totalReportSize], &(currentReport[i][0]), currentReportSize[i]);
+    totalReportSize += currentReportSize[i];
+  }
   startDMA(CHAN_OUTPUT, &controler_buffer[0], 201);
   pio_sm_set_enabled(pio0, sm_output, true);
-  startDMA(CHAN_INPUT, &controler_buffer[(max_usb_controller+1)*sizeof(_3do_joypad_report)], 199);
+  startDMA(CHAN_INPUT, &controler_buffer[totalReportSize], 201-totalReportSize);
   pio_interrupt_clear(pio0, 0);
   irq_clear(PIO0_IRQ_0);
 }
@@ -166,9 +165,18 @@ void _3DO_init() {
 
 void update_3do_joypad(_3do_joypad_report report, uint8_t instance) {
   if (instance >= MAX_CONTROLERS) return;
-  uint16_t report_value;
-  memcpy(&report_value, &report, 2);
-  currentReport[instance] = report_value;
+  memcpy(&(currentReport[instance][0]), &report, 2);
+  currentReportSize[instance] = 2;
+  deviceAttached[instance] = true;
+  max_usb_controller = (max_usb_controller < (instance+1))?(instance+1):max_usb_controller;
+}
+
+
+void update_3do_joystick(_3do_joystick_report report, uint8_t instance) {
+  if (instance >= MAX_CONTROLERS) return;
+  memcpy(&(currentReport[instance][0]), &report, 9);
+  //printf("Stick %02X%02X%02X%02X%02X%02X%02X%02X%02X\n", currentReport[instance][0],currentReport[instance][1],currentReport[instance][2],currentReport[instance][3],currentReport[instance][4],currentReport[instance][5],currentReport[instance][6],currentReport[instance][7],currentReport[instance][8]);
+  currentReportSize[instance] = 9;
   deviceAttached[instance] = true;
   max_usb_controller = (max_usb_controller < (instance+1))?(instance+1):max_usb_controller;
 }
@@ -185,7 +193,7 @@ _3do_joystick_report new3doStickReport() {
   report.id_0 = 0x01;
   report.id_1 = 0x7B;
   report.id_2 = 0x08;
-  report.tail = 0x02;
+  report.tail = 0x00;
   return report;
 }
 
