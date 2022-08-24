@@ -308,7 +308,7 @@ void process_hid(uint8_t const* report, int8_t dev_addr, uint8_t instance, uint1
           update_3do_joypad(*((_3do_joypad_report*)newReport), id);
         }
       }
-      if (type == JOYSTICK) {
+      if ((type == JOYSTICK_WHEEL) || (type == JOYSTICK_FLIGHT)){
         printf("HID joystick Report %02x%02x%02x%02x%02x%02x%02x%02x%02x\n", ((uint8_t*)newReport)[0], ((uint8_t*)newReport)[1],((uint8_t*)newReport)[2], ((uint8_t*)newReport)[3], ((uint8_t*)newReport)[4], ((uint8_t*)newReport)[5], ((uint8_t*)newReport)[6], ((uint8_t*)newReport)[7], ((uint8_t*)newReport)[8]);
         update_3do_joystick(*((_3do_joystick_report*)newReport), id);
       }

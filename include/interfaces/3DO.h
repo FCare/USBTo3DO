@@ -54,7 +54,8 @@ uint8_t P     : 1;
 typedef enum{
   NONE = 0,
   JOYPAD,
-  JOYSTICK
+  JOYSTICK_FLIGHT,
+  JOYSTICK_WHEEL,
 } controler_type;
 
 

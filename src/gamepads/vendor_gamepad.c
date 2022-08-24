@@ -103,7 +103,7 @@ if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
     if (type == JOYPAD) {
       update_3do_joypad(*((_3do_joypad_report*)newReport), id);
     }
-    if (type == JOYSTICK) {
+    if ((type == JOYSTICK_WHEEL) || (type == JOYSTICK_FLIGHT)) {
       update_3do_joystick(*((_3do_joystick_report*)newReport), id);
     }
   } else {
