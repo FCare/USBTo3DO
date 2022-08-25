@@ -106,8 +106,9 @@ if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
     if ((type == JOYSTICK_WHEEL) || (type == JOYSTICK_FLIGHT)) {
       update_3do_joystick(*((_3do_joystick_report*)newReport), id);
     }
-  } else {
-    update_3do_joypad(new3doPadReport(), id);
+  // } else {
+    // printf("Send default pad\n");
+    // update_3do_joypad(new3doPadReport(), id);
   }
   if(newReport != NULL) free(newReport);
 }

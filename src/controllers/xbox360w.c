@@ -96,6 +96,7 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
     uint8_t * int_report = (uint8_t *)report_p;
     *controler_id = instance;
 
+    *type = controler_mode[instance];
 
     if (len == 2) {
       if ((int_report[0] & 0x08) && ((int_report[1] & 0x80) != 0)) {
@@ -130,7 +131,6 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
     set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
   }
 
-  *type = controler_mode[instance];
 
   if (controler_mode[instance] == JOYPAD) {
     _3do_joypad_report *result = malloc(sizeof(_3do_joypad_report));
