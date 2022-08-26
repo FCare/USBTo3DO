@@ -81,14 +81,10 @@ static int mode[MAX_CONTROLERS] = {0};
 
 void led_xbox360w(void) {
   for (int i = 0; i<MAX_CONTROLERS; i++) {
-    if ((controler_mode[i] == JOYSTICK_WHEEL) || (controler_mode[i] == JOYSTICK_FLIGHT))
+    if (controler_mode[i] == JOYSTICK)
         set_led(controler_addr[i], i, LED_TOP_LEFT_ON + (i+mode[i])%4);
-    if (controler_mode[i] == JOYSTICK_FLIGHT)
+    if (controler_mode[i] == JOYSTICK)
       mode[i] = !mode[i];
-    if (controler_mode[i] == JOYSTICK_WHEEL){
-      mode[i]++;
-      mode[i]%=3;
-    }
   }
 }
 
@@ -113,14 +109,10 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
     if (report.BTN_MODE) {
       switch (controler_mode[instance]){
         case JOYPAD:
-          controler_mode[instance] = JOYSTICK_FLIGHT;
+          controler_mode[instance] = JOYSTICK;
           mode[instance] = 0;
           break;
-        case JOYSTICK_FLIGHT:
-          controler_mode[instance] = JOYSTICK_WHEEL;
-          mode[instance] = 0;
-          break;
-        case JOYSTICK_WHEEL:
+        case JOYSTICK:
           controler_mode[instance] = JOYPAD;
           mode[instance] = 0;
           break;
@@ -153,15 +145,15 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
       *res = (void *)(result);
   }
 
-  if (controler_mode[instance] == JOYSTICK_WHEEL) {
+  if (controler_mode[instance] == JOYSTICK) {
     _3do_joystick_report *result = malloc(sizeof(_3do_joystick_report));
     *result = new3doStickReport();
 
     uint8_t h_pos = (((int32_t)report.ABS_X + 0x8000) >> 8) & 0xFF;
     uint8_t v_pos = ((0x7FFF - (int32_t)report.ABS_Y ) >> 8) & 0xFF;
 
-    uint8_t accel = report.ABS_Z;
-    uint8_t brake = report.ABS_RZ;
+    int16_t accel = (report.ABS_Z + 256) %256;
+    int16_t brake = (report.ABS_RZ + 256) %256;
     uint32_t length = sqrt((h_pos - 128)*(h_pos-128) + (v_pos-128)*(v_pos-128));
 
     int x = h_pos - 128;
@@ -182,49 +174,13 @@ bool map_xbox360w(void *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance
     x = (x>255)?255:x;
     x = (x<0)?0:x;
 
-    int8_t d_pos = (int8_t)(((((int16_t)accel - (int16_t)brake)>>1) + 0x80) & 0xFF);
+    int d_pos = ((accel - brake)>>1) + 128;
+    d_pos = (d_pos>255)?255:d_pos;
+    d_pos = (d_pos<0)?0:d_pos;
+
     result->analog1 = x;
     result->analog2 = (y >> 2);
     result->analog3 = ((y & 0x3)<<6) | ((d_pos & 0xF0)>>4);
-    result->analog4 = ((d_pos & 0x0F)<<4) | 0x2;
-
-    result->FIRE = report.BTN_Y;
-    result->up = report.BTN_TRIGGER_HAPPY3 || (report.ABS_RY > 22500);
-    result->down = report.BTN_TRIGGER_HAPPY4 || (report.ABS_RY < -22500);
-    result->left = report.BTN_TRIGGER_HAPPY1 || (report.ABS_RX < -22500);
-    result->right = report.BTN_TRIGGER_HAPPY2 || (report.ABS_RX > 22500);
-    result->X = report.BTN_START;
-    result->P = report.BTN_SELECT;
-    result->A = report.BTN_X;
-    result->B = report.BTN_A;
-    result->C = report.BTN_B;
-    result->L = report.BTN_TL;
-    result->R = report.BTN_TR;
-
-    CTRL_DEBUG("Touch 0x%X (down %d up %d right %d left %d A %d B %d C %d P %d X %d R %d L %d FIRE %d)\n",
-    result, result->down, result->up, result->right, result->left, result->A, result->B, result->C,
-    result->P, result->X, result->R, result->L, result->FIRE );
-
-    CTRL_DEBUG("brake %d accel %d v_pos %d h_pos %d d_pos %d ABS_Z %x ABS_RZ %x\n",brake, accel, (uint8_t)v_pos, (uint8_t)h_pos, (uint8_t)d_pos, (int32_t)report.ABS_Z , (int32_t)report.ABS_RZ);
-
-    *res = (void *)(result);
-  }
-
-  if (controler_mode[instance] == JOYSTICK_FLIGHT) {
-    _3do_joystick_report *result = malloc(sizeof(_3do_joystick_report));
-    *result = new3doStickReport();
-
-    uint8_t h_pos = (((int32_t)report.ABS_X + 0x8000) >> 8) & 0xFF;
-    uint8_t v_pos = ((0x7FFF - (int32_t)report.ABS_Y ) >> 8) & 0xFF;
-
-    uint8_t accel = report.ABS_Z;
-    uint8_t brake = report.ABS_RZ;
-
-
-    int8_t d_pos = (int8_t)(((((int16_t)accel - (int16_t)brake)>>1) + 0x80) & 0xFF);
-    result->analog1 = h_pos;
-    result->analog2 = (v_pos >> 2);
-    result->analog3 = ((v_pos & 0x3)<<6) | ((d_pos & 0xF0)>>4);
     result->analog4 = ((d_pos & 0x0F)<<4) | 0x2;
 
     result->FIRE = report.BTN_Y;
