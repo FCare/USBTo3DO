@@ -122,8 +122,8 @@ typedef struct TU_ATTR_PACKED
 
 static mapping_3do *currentMapping = NULL;
 
-#define NB_GAMEPAD_SUPPORTED 7
-#define NB_GAMEPAD_IN_LIST 7
+#define NB_GAMEPAD_SUPPORTED 8
+#define NB_GAMEPAD_IN_LIST 8
 static mapping_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x0079, 0x0011, map_dragonRise, NULL, NULL}, //0079:0011 DragonRise Inc. Gamepad
   {0x0f0d, 0x00c1, map_retroBit, NULL, NULL}, //USB Gamepad Manufacturer: SWITCH CO.,LTD. SerialNumber: GH-SP-5027-1 H2
@@ -132,6 +132,7 @@ static mapping_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x054c, 0x0cda, map_ps_classic, NULL, NULL}, // 054c:0cda Sony Corp. PlayStation Classic controller
   {0x044f, 0xb108, map_hotas_x_pc, NULL, NULL}, //044f:b108 ThrustMaster, Inc. T-Flight Hotas X Flight Stick
   {0x044f, 0xb109, map_hotas_x_ps3, NULL, NULL}, //044f:b109 ThrustMaster, Inc. T.Flight Hotas PS3
+  {0x044f, 0xb66a, map_t80_pc, NULL, NULL}, //044f:b66a ThrustMaster, Inc. Thrustmaster T80
 };
 
 // check if device is Sony DualShock 4
