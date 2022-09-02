@@ -37,6 +37,7 @@ src/controllers/wiiadapter.c
 src/controllers/retroBit.c
 src/controllers/saturnAdapter.c
 src/controllers/psClassic.c
+src/controllers/thrustmaster.c
 )
 
 pico_generate_pio_header(USBto3Do ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/sampling.pio)

@@ -7,7 +7,7 @@
 
 static uint8_t oldReport[2][7];
 
-bool map_saturn_adapter(void* report_p, uint8_t len, uint8_t dev_addr, uint8_t instance, uint8_t *controler_id, controler_type* type, void** res) {
+bool map_saturn_adapter(uint8_t* report_p, uint8_t len, uint8_t dev_addr, uint8_t instance, uint8_t *controler_id, controler_type* type, void** res) {
   uint8_t* report = (uint8_t *)report_p;
   uint8_t id = report[0] - 1;
 #ifdef _DEBUG_MAPPER_

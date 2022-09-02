@@ -36,6 +36,7 @@
 #include "retroBit.h"
 #include "saturnAdapter.h"
 #include "psClassic.h"
+#include "thrustmaster.h"
 
 /* From https://www.kernel.org/doc/html/latest/input/gamepad.html
           ____________________________              __
@@ -121,16 +122,16 @@ typedef struct TU_ATTR_PACKED
 
 static mapping_3do *currentMapping = NULL;
 
-#define NB_GAMEPAD_SUPPORTED 5
-#define NB_GAMEPAD_IN_LIST 5
+#define NB_GAMEPAD_SUPPORTED 7
+#define NB_GAMEPAD_IN_LIST 7
 static mapping_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x0079, 0x0011, map_dragonRise, NULL, NULL}, //0079:0011 DragonRise Inc. Gamepad
-
-  //NOT SUPPORTED YET
   {0x0f0d, 0x00c1, map_retroBit, NULL, NULL}, //USB Gamepad Manufacturer: SWITCH CO.,LTD. SerialNumber: GH-SP-5027-1 H2
   {0x1d79, 0x0301, map_wii_classic_adapter, NULL, NULL}, //1d79:0301 Dell Dell USB Keyboard Hub //REQUIRE MULTI CONTROLLER SUPPORT //
   {0x0e8f, 0x3010, map_saturn_adapter, NULL, NULL}, //0e8f:3010 GreenAsia Inc. Dell USB Keyboard Hub
   {0x054c, 0x0cda, map_ps_classic, NULL, NULL}, // 054c:0cda Sony Corp. PlayStation Classic controller
+  {0x044f, 0xb108, map_hotas_x_pc, NULL, NULL}, //044f:b108 ThrustMaster, Inc. T-Flight Hotas X Flight Stick
+  {0x044f, 0xb109, map_hotas_x_ps3, NULL, NULL}, //044f:b109 ThrustMaster, Inc. T.Flight Hotas PS3
 };
 
 // check if device is Sony DualShock 4
@@ -295,13 +296,11 @@ void process_hid(uint8_t const* report, int8_t dev_addr, uint8_t instance, uint1
   // all buttons state is stored in ID 1
   if (currentMapping != NULL)
   {
-    hid_report_t hid_report;
-    memcpy(&hid_report, report, sizeof(hid_report));
     uint8_t id;
     void *newReport = NULL;
     controler_type type;
     TU_LOG1("New report\n");
-    if (currentMapping->mapper(&hid_report, len, dev_addr, instance, &id, &type, &newReport)) {
+    if (currentMapping->mapper(report, len, dev_addr, instance, &id, &type, &newReport)) {
       if (newReport != NULL) {
         if (type == JOYPAD) {
           TU_LOG1("Update joypad %p %p\n", newReport, &newReport);

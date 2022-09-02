@@ -58,7 +58,7 @@ typedef enum{
 } controler_type;
 
 
-typedef bool (*mapper)(void *, uint8_t len, uint8_t dev_addr, uint8_t instance, uint8_t *controler_id, controler_type* type, void** res);
+typedef bool (*mapper)(uint8_t *, uint8_t len, uint8_t dev_addr, uint8_t instance, uint8_t *controler_id, controler_type* type, void** res);
 typedef bool (*mountFunc)(uint8_t, uint8_t );
 typedef void (*tick)(void);
 
