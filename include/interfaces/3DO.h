@@ -16,11 +16,11 @@ uint16_t id: 3;
 
 // MSB Byte
 uint16_t tail : 2;
-uint16_t C : 1;
-uint16_t P : 1;
-uint16_t X : 1;
-uint16_t R : 1;
 uint16_t L : 1;
+uint16_t R : 1;
+uint16_t X : 1;
+uint16_t P : 1;
+uint16_t C : 1;
 uint16_t B : 1;
 
 } _3do_joypad_report;
