@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "xbox360w.h"
+#include "xbox360.h"
 
 static controler_type controler_mode[MAX_CONTROLERS] = {NONE};
 static uint8_t controler_addr[MAX_CONTROLERS] = {0};
@@ -12,12 +12,13 @@ static bool lastMode[MAX_CONTROLERS] = {0};
 static void set_led(uint8_t dev_addr, uint8_t instance, led_state state) {
   uint8_t protocol;
   tuh_vendor_protocol_get(dev_addr, instance, &protocol);
-  if (protocol == 129) {
+  if (protocol == 1) {
     TU_LOG1("Can set led\n");
-    uint8_t buffer[12] = {0x00};
-    buffer[2] = 0x08;
-    buffer[3] = 0x40 + state; //rotate
-    tuh_vendor_send_packet_out(dev_addr, instance, &buffer[0], 12);
+    uint8_t buffer[3] = {0x00};
+    buffer[0] = 0x01;
+    buffer[1] = 0x03;
+    buffer[2] = state; //rotate
+    tuh_vendor_send_packet_out(dev_addr, instance, &buffer[0], 3);
   }
 }
 
@@ -30,12 +31,6 @@ static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len)
     status.BTN_TRIGGER_HAPPY3 = (report[2] & 0x01) != 0;
     status.BTN_TRIGGER_HAPPY4 = (report[2] & 0x02) != 0;
 
-    /*
-    * This should be a simple else block. However historically
-    * xbox360w has mapped DPAD to buttons while xbox360 did not. This
-    * made no sense, but now we can not just switch back and have to
-    * support both behaviors.
-    */
     status.ABS_HAT0X = !!(report[2] & 0x08) - !!(report[2] & 0x04);
     status.ABS_HAT0Y = !!(report[2] & 0x02) - !!(report[2] & 0x01);
 
@@ -70,7 +65,7 @@ static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len)
   return status;
 }
 
-bool mount_xbox360w(uint8_t dev_addr, uint8_t instance) {
+bool mount_xbox360(uint8_t dev_addr, uint8_t instance) {
   controler_mode[instance] = JOYPAD;
   lastMode[instance] = 1; //First report gets BTN Mode UP
   controler_addr[instance] = dev_addr;
@@ -79,30 +74,24 @@ bool mount_xbox360w(uint8_t dev_addr, uint8_t instance) {
 }
 static int mode[MAX_CONTROLERS] = {0};
 
-void led_xbox360w(void) {
+void led_xbox360(void) {
   for (int i = 0; i<MAX_CONTROLERS; i++) {
-    if (controler_mode[i] == JOYSTICK)
-        set_led(controler_addr[i], i, LED_TOP_LEFT_ON + (i+mode[i])%4);
-    if (controler_mode[i] == JOYSTICK)
+    if (controler_mode[i] == JOYSTICK) {
+      set_led(controler_addr[i], i, LED_TOP_LEFT_ON + (i+mode[i])%4);
       mode[i] = !mode[i];
+    }
   }
 }
 
-bool map_xbox360w(uint8_t *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance, uint8_t *controler_id, controler_type* type, void** res) {
+bool map_xbox360(uint8_t *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance, uint8_t *controler_id, controler_type* type, void** res) {
     uint8_t * int_report = (uint8_t *)report_p;
     *controler_id = instance;
 
     *type = controler_mode[instance];
 
-    if (len == 2) {
-      if ((int_report[0] & 0x08) && ((int_report[1] & 0x80) != 0)) {
-        return false;
-      }
-    }
+  if (int_report[0] != 0) return false;
 
-  if ((int_report[0] == 0x0) && (int_report[1] == 0x0)) return false;
-
-  xbox360_report report  = handle_xbox360_report(&int_report[4],len - 5);
+  xbox360_report report  = handle_xbox360_report(&int_report[0],len);
 
   if (report.BTN_MODE != lastMode[instance]) {
     lastMode[instance] = report.BTN_MODE;

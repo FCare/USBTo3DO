@@ -30,6 +30,7 @@
 
 #include "3DO.h"
 #include "xbox360w.h"
+#include "xbox360.h"
 
 //Code is made for only one USB port. Will not work in case of HUB plugged
 
@@ -40,7 +41,7 @@ static mapping_3do *currentMapping = NULL;
 
 #define NB_GAMEPAD_SUPPORTED 2
 static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
-  {0x045e, 0x028e, map_xbox360w, mount_xbox360w, led_xbox360w}, //045e:028e 8bitDo - M30 seen as Xbox360 controller
+  {0x045e, 0x028e, map_xbox360, mount_xbox360, led_xbox360}, //Xbox360 wired controller
   {0x045e, 0x2a9, map_xbox360w, mount_xbox360w, led_xbox360w}, //Xbox 360 wireless receiver
 };
 

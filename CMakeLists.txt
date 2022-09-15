@@ -32,6 +32,7 @@ src/gamepads/vendor_gamepad.c
 src/gamepads/hid_gamepad.c
 src/controllers/8bitdo.c
 src/controllers/xbox360w.c
+src/controllers/xbox360.c
 src/controllers/dragonrise.c
 src/controllers/wiiadapter.c
 src/controllers/retroBit.c
