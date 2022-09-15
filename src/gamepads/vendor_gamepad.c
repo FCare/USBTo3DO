@@ -29,7 +29,6 @@
 #include <stdlib.h>
 
 #include "3DO.h"
-#include "8bitdo.h"
 #include "xbox360w.h"
 
 //Code is made for only one USB port. Will not work in case of HUB plugged
@@ -41,9 +40,8 @@ static mapping_3do *currentMapping = NULL;
 
 #define NB_GAMEPAD_SUPPORTED 2
 static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
-  {0x045e, 0x028e, map_8bitDo, NULL, NULL}, //045e:028e 8bitDo - M30 seen as Xbox360 controller
+  {0x045e, 0x028e, map_xbox360w, mount_xbox360w, led_xbox360w}, //045e:028e 8bitDo - M30 seen as Xbox360 controller
   {0x045e, 0x2a9, map_xbox360w, mount_xbox360w, led_xbox360w}, //Xbox 360 wireless receiver
-  // {0x046d, 0xc21d, map_8bitDo} //Logitech F310
 };
 
 void vendor_gamepad_tick(void) {
@@ -94,6 +92,7 @@ TU_LOG1("\r\n");
 
 uint16_t vid, pid;
 tuh_vid_pid_get(dev_addr, &vid, &pid);
+TU_LOG1("Check PID / VID %x %x and %x %x\r\n", vid, currentMapping->vid, pid, currentMapping->pid);
 if (currentMapping == NULL) return;
 if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
   uint8_t id;

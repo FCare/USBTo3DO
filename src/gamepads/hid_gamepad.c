@@ -34,6 +34,7 @@
 #include "dragonrise.h"
 #include "wiiadapter.h"
 #include "retroBit.h"
+#include "8bitdo.h"
 #include "saturnAdapter.h"
 #include "psClassic.h"
 #include "thrustmaster.h"
@@ -79,8 +80,8 @@
 
 static mapping_3do *currentMapping = NULL;
 
-#define NB_GAMEPAD_SUPPORTED 12
-#define NB_GAMEPAD_IN_LIST 12
+#define NB_GAMEPAD_SUPPORTED 14
+#define NB_GAMEPAD_IN_LIST 14
 static mapping_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x0079, 0x0011, map_dragonRise, NULL, NULL}, //0079:0011 DragonRise Inc. Gamepad
   {0x0f0d, 0x00c1, map_retroBit, NULL, NULL}, //USB Gamepad Manufacturer: SWITCH CO.,LTD. SerialNumber: GH-SP-5027-1 H2
@@ -95,6 +96,8 @@ static mapping_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x0f0d, 0x005e, map_ds4, NULL, NULL}, // Hori FC4
   {0x0f0d, 0x00ee, map_ds4, NULL, NULL}, // Hori PS4 Mini (PS4-099U)
   {0x1f4f, 0x1002, map_ds4, NULL, NULL},
+  {0x2dc8, 0x5006, map_8bitDo_M30, NULL, NULL} //8bitDo  M30 controler in dinput mode (B pressed at power up)
+
 };
 
 static inline bool is_supported_controller(uint8_t dev_addr)
