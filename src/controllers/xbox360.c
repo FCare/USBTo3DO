@@ -9,6 +9,19 @@ static controler_type controler_mode[MAX_CONTROLERS] = {NONE};
 static uint8_t controler_addr[MAX_CONTROLERS] = {0};
 static bool lastMode[MAX_CONTROLERS] = {0};
 
+static void set_ff(uint8_t dev_addr, uint8_t instance, uint16_t weak, uint16_t strong) {
+  // uint8_t protocol;
+  // tuh_vendor_protocol_get(dev_addr, instance, &protocol);
+  // if (protocol == 1) {
+  //   TU_LOG1("Setup rumble\n");
+  //   uint8_t buffer[6] = {0x00};
+  //   buffer[1] = 0x06;
+  //   buffer[3] = strong/256;
+  //   buffer[5] = weak/256; //rotate
+  //   tuh_vendor_send_packet_out(dev_addr, instance, &buffer[0], 6);
+  // }
+}
+
 static void set_led(uint8_t dev_addr, uint8_t instance, led_state state) {
   uint8_t protocol;
   tuh_vendor_protocol_get(dev_addr, instance, &protocol);
@@ -18,13 +31,13 @@ static void set_led(uint8_t dev_addr, uint8_t instance, led_state state) {
     buffer[0] = 0x01;
     buffer[1] = 0x03;
     buffer[2] = state; //rotate
-    tuh_vendor_send_packet_out(dev_addr, instance, &buffer[0], 3);
+    // tuh_vendor_send_packet_out(dev_addr, instance, &buffer[0], 3);
   }
 }
 
 static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len) {
   xbox360_report status;
-
+printf("###len is%d\n", len);
     /* dpad as buttons (left, right, up, down) */
     status.BTN_TRIGGER_HAPPY1 = (report[2] & 0x04) != 0;
     status.BTN_TRIGGER_HAPPY2 = (report[2] & 0x08) != 0;
@@ -69,6 +82,7 @@ bool mount_xbox360(uint8_t dev_addr, uint8_t instance) {
   controler_mode[instance] = JOYPAD;
   lastMode[instance] = 1; //First report gets BTN Mode UP
   controler_addr[instance] = dev_addr;
+  set_ff(dev_addr, instance, 0x0, 0x0);
   set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
   return false; //Do not consider it is added. Wait for first report
 }

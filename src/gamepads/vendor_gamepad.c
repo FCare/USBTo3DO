@@ -39,10 +39,24 @@
 
 static mapping_3do *currentMapping = NULL;
 
-#define NB_GAMEPAD_SUPPORTED 2
+
+
+bool map_logitech_f310(uint8_t *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance, uint8_t *controler_id, controler_type* type, void** res) {
+    uint8_t * int_report = (uint8_t *)report_p;
+    *controler_id = instance;
+
+    *type =JOYPAD;
+
+    for (int i = 0; i<len; i++) printf("%x ,", int_report[i]);
+    printf("\n");
+    return true;
+}
+
+#define NB_GAMEPAD_SUPPORTED 3
 static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
   {0x045e, 0x028e, map_xbox360, mount_xbox360, led_xbox360}, //Xbox360 wired controller
   {0x045e, 0x2a9, map_xbox360w, mount_xbox360w, led_xbox360w}, //Xbox 360 wireless receiver
+  {0x046d, 0xc21d, map_logitech_f310, NULL, NULL}
 };
 
 void vendor_gamepad_tick(void) {
@@ -59,6 +73,7 @@ void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc
   uint16_t vid, pid;
   bool newControllerAdded = true;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
+  printf("VID %x PID %x\n", vid, pid);
   for (int i = 0; i<NB_GAMEPAD_SUPPORTED; i++) {
     if ((vid == map[i].vid) && (pid == map[i].pid)) {
       currentMapping = &map[i];
@@ -72,8 +87,10 @@ void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc
   if (currentMapping->mount != NULL) {
     newControllerAdded = currentMapping->mount(dev_addr, instance);
   }
+  // uint8_t buffer[3] = {1,3,2};
+  // tuh_vendor_send_packet_out(dev_addr, instance, &buffer[0], 3); //start the input
 
-  if ( !tuh_vendor_receive_report(dev_addr, instance) )
+  if ( !tuh_vendor_receive_packet_in(dev_addr, instance) )
   {
     TU_LOG1("Error: cannot request to receive report\r\n");
   }
@@ -115,7 +132,7 @@ if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
 
 
   // continue to request to receive report
-  if ( !tuh_vendor_receive_report(dev_addr, instance) )
+  if ( !tuh_vendor_receive_packet_in(dev_addr, instance) )
   {
     TU_LOG1("Error: cannot request to receive report\r\n");
   }
