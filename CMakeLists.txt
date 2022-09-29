@@ -39,6 +39,7 @@ src/controllers/retroBit.c
 src/controllers/saturnAdapter.c
 src/controllers/psClassic.c
 src/controllers/thrustmaster.c
+src/controllers/logitech.c
 src/controllers/ps4.c
 )
 

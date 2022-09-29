@@ -38,6 +38,7 @@
 #include "saturnAdapter.h"
 #include "psClassic.h"
 #include "thrustmaster.h"
+#include "logitech.h"
 #include "ps4.h"
 
 /* From https://www.kernel.org/doc/html/latest/input/gamepad.html
@@ -80,8 +81,8 @@
 
 static mapping_3do *currentMapping = NULL;
 
-#define NB_GAMEPAD_SUPPORTED 15
-#define NB_GAMEPAD_IN_LIST 15
+#define NB_GAMEPAD_SUPPORTED 16
+#define NB_GAMEPAD_IN_LIST 16
 static mapping_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x0079, 0x0011, map_dragonRise, NULL, NULL}, //0079:0011 DragonRise Inc. Gamepad
   {0x0f0d, 0x00c1, map_retroBit, NULL, NULL}, //USB Gamepad Manufacturer: SWITCH CO.,LTD. SerialNumber: GH-SP-5027-1 H2
@@ -98,12 +99,13 @@ static mapping_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x1f4f, 0x1002, map_ds4, NULL, NULL},
   {0x2dc8, 0x5006, map_8bitDo_M30, NULL, NULL}, //8bitDo  M30 controler in dinput mode (B pressed at power up)
   {0x057e, 0x2009, map_8bitDo_SN30Pro, NULL, NULL}, //8bitDo  SN30 controler is seen as a nintendo switch controller
+  {0x046d, 0xc215, map_logitech_extreme_pro, NULL, NULL}, // 046d:c215 Logitech, Inc. Extreme 3D Pro
 };
 
 static inline bool is_supported_controller(uint8_t dev_addr)
 {
   uint16_t vid, pid;
-  currentMapping = false;
+  currentMapping = NULL;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
   for (int i = 0; i<NB_GAMEPAD_SUPPORTED; i++) {
     TU_LOG1("Compare %4x to %4x and %4x to %4x\n", vid, map[i].vid, pid, map[i].pid);
