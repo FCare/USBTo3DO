@@ -30,6 +30,7 @@
 
 #include "3DO.h"
 #include "hid_gamepad.h"
+#include "hid_parser.h"
 
 #include "dragonrise.h"
 #include "wiiadapter.h"
@@ -80,6 +81,7 @@
  // 045e:028e Microsoft Corp. Xbox360 Controller => 8bitdo M30 seen as xBox controller
 
 static mapping_3do *currentMapping = NULL;
+static hid_mapping currentController;
 
 #define NB_GAMEPAD_SUPPORTED 16
 #define NB_GAMEPAD_IN_LIST 16
@@ -151,14 +153,26 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
   TU_LOG1("HID device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
   TU_LOG1("VID = %04x, PID = %04x\r\n", vid, pid);
 
+  TU_LOG1("Descriptor length %d :", desc_len);
+  TU_LOG1_MEM(desc_report, desc_len, 2);
+
+  parse_hid_descriptor(desc_report, desc_len, &currentController);
+
+  if (currentController.type != TYPE_NONE) {
+    // if (currentController.nb_events >= )
+    TU_LOG1("Got a compatible Joystick controller with %d buttons\n", currentController.nb_events);
+  }
+
   // Sony DualShock 4 [CUH-ZCT2x]
-  if (is_supported_controller(dev_addr))
+  if (is_supported_controller(dev_addr) || (currentController.type != TYPE_JOYSTICK))
   {
     // request to receive report
     // tuh_hid_report_received_cb() will be invoked when report is available
     if ( !tuh_hid_receive_report(dev_addr, instance) )
     {
       TU_LOG1("Error: cannot request to receive report\r\n");
+    } else {
+      TU_LOG1("Report requested\n");
     }
   }
 }
@@ -203,6 +217,21 @@ void process_hid(uint8_t const* report, int8_t dev_addr, uint8_t instance, uint1
 void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len)
 {
   process_hid(report, dev_addr, instance, len);
+
+  TU_LOG1("Got a report\n");
+  TU_LOG1_MEM(report, len, 2);
+
+  for (int i=0; i<currentController.nb_events; i++) {
+    hid_event *ev = &currentController.events[i];
+    for (int j=ev->begin; j<ev->end; j++) {
+      uint8_t byte = report[j/8];
+      uint8_t bit = byte & (1<<(j%8));
+      if (bit != 0) {
+        TU_LOG1("Event %d [%d,%d] got 0x%x[0x%x] on byte %d => Key 0x%x\n", i, ev->begin, ev->end, byte, (1<<(j%8)), j/8, ev->key);
+      }
+
+    }
+  }
 
   // continue to request to receive report
   if ( !tuh_hid_receive_report(dev_addr, instance) )

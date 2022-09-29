@@ -30,6 +30,7 @@ src/interfaces/USB.c
 src/interfaces/3DO.c
 src/gamepads/vendor_gamepad.c
 src/gamepads/hid_gamepad.c
+src/gamepads/hid_parser.c
 src/controllers/8bitdo.c
 src/controllers/xbox360w.c
 src/controllers/xbox360.c
