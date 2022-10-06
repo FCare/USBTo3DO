@@ -42,7 +42,7 @@
 #include "logitech.h"
 #include "ps4.h"
 
-#define _DEBUG_MAPPER_
+//#define _DEBUG_MAPPER_
 
 /* From https://www.kernel.org/doc/html/latest/input/gamepad.html
           ____________________________              __
@@ -176,7 +176,7 @@ static bool is3DOCompatible(hid_controller *ctrl) {
     for (int i=0; i<8; i++) {
       nbAxis += (ctrl->axis_status[hid]>>i)&0x1;
     }
-    printf("HID %d Offset 0x%x NbButtons = %d, hasHat = %d, nbAxis = %d\n", hid, mapping->index, ctrl->nbButtons[hid], ctrl->hasHat[hid], nbAxis);
+    TU_LOG1("HID %d Offset 0x%x NbButtons = %d, hasHat = %d, nbAxis = %d\n", hid, mapping->index, ctrl->nbButtons[hid], ctrl->hasHat[hid], nbAxis);
     if (ctrl->nbButtons[hid] < 11) {
       int missing_buttons = 11 - ctrl->nbButtons[hid];
       if (ctrl->axis_status[hid] & 0x3 == 0x3) ctrl->isCompatible[hid] = true;
