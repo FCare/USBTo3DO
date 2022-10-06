@@ -122,7 +122,7 @@ static inline bool is_supported_controller(uint8_t dev_addr)
   tuh_manufacturer_get(dev_addr, manuf);
 
   for (int i = 0; i<NB_GAMEPAD_SUPPORTED; i++) {
-    TU_LOG1("Compare %4x to %4x and %4x to %4x\n", vid, map[i].vid, pid, map[i].pid);
+    TU_LOG1("Compare 0x%04x to 0x%04x and 0x%04x to 0x%04x\n", vid, map[i].vid, pid, map[i].pid);
     if ((vid == map[i].vid) && (pid == map[i].pid)) {
       if (map[i].manuf != NULL) {
         TU_LOG1("Compare %s with %s\n", map[i].manuf,manuf);
