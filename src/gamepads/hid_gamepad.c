@@ -102,12 +102,12 @@ static mapping_hid_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x044f, 0xb66a, NULL, map_t80_pc, NULL, NULL}, //044f:b66a ThrustMaster, Inc. Thrustmaster T80
   {0x2dc8, 0x5006, NULL, map_8bitDo_M30, NULL, NULL}, //8bitDo  M30 controler in dinput mode (B pressed at power up)
   {0x054c, 0x0cda, NULL, map_ps_classic, NULL, NULL}, // 054c:0cda Sony Corp. PlayStation Classic controller
-  {0x054c, 0x09cc, map_ds4, NULL, NULL}, //Dualshock4
-  {0x054c, 0x05c4, map_ds4, NULL, NULL}, //Dualshock4
-  {0x0f0d, 0x005e, map_ds4, NULL, NULL}, // Hori FC4
-  {0x0f0d, 0x00ee, map_ds4, NULL, NULL}, // Hori PS4 Mini (PS4-099U)
-  {0x1f4f, 0x1002, map_ds4, NULL, NULL},
-  // {0x057e, 0x2009, map_8bitDo_SN30Pro, NULL, NULL}, //8bitDo  SN30 controler is seen as a nintendo switch controller
+  {0x054c, 0x09cc, NULL, map_ds4, NULL, NULL}, //Dualshock4
+  {0x054c, 0x05c4, NULL, map_ds4, NULL, NULL}, //Dualshock4
+  {0x0f0d, 0x005e, NULL, map_ds4, NULL, NULL}, // Hori FC4
+  {0x0f0d, 0x00ee, NULL, map_ds4, NULL, NULL}, // Hori PS4 Mini (PS4-099U)
+  {0x1f4f, 0x1002, NULL, map_ds4, NULL, NULL},
+  // {0x057e, 0x2009, NULL, map_8bitDo_SN30Pro, NULL, NULL}, //8bitDo  SN30 controler is seen as a nintendo switch controller
 };
 
 static inline bool is_supported_controller(uint8_t dev_addr)
