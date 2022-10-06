@@ -57,7 +57,7 @@ typedef enum{
   JOYSTICK,
 } controler_type;
 
-
+typedef bool (*hid_mapper)(uint8_t instance, uint8_t *id, controler_type *type, void **res, void *ctrl);
 typedef bool (*mapper)(uint8_t *, uint8_t len, uint8_t dev_addr, uint8_t instance, uint8_t *controler_id, controler_type* type, void** res);
 typedef bool (*mountFunc)(uint8_t, uint8_t );
 typedef void (*tick)(void);
@@ -69,6 +69,15 @@ typedef struct {
    mountFunc mount;
    tick tick;
  } mapping_3do;
+
+ typedef struct {
+    uint16_t vid;
+    uint16_t pid;
+    char const *manuf;
+    hid_mapper mapper;
+    mountFunc mount;
+    tick tick;
+  } mapping_hid_3do;
 
  extern void update_3do_joypad(_3do_joypad_report report, uint8_t instance);
  extern _3do_joypad_report new3doPadReport();

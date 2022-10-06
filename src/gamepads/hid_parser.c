@@ -31,6 +31,8 @@
 #include "3DO.h"
 #include "hid_parser.h"
 
+#define PARSER_LOG TU_LOG1
+
 hid_mapping currentController;
 
 static int read_from_desc(uint8_t const* desc_report, uint8_t size) {
@@ -42,7 +44,7 @@ static int read_from_desc(uint8_t const* desc_report, uint8_t size) {
     case 4:
       return tu_unaligned_read32(desc_report);
     default:
-      TU_LOG1("Unknown format size %d\n", size);
+      PARSER_LOG("Unknown format size %d\n", size);
   }
   return 0;
 }
@@ -56,19 +58,20 @@ static bool get_header(uint8_t const* desc_report, uint8_t *tag, uint8_t *type, 
 
 static void addUsage(usage *currentUsage, hid_mapping* mapping) {
   hid_event* event = &mapping->events[mapping->nb_events];
-  TU_LOG1("####Build event #####\n");
+  PARSER_LOG("####Build event %d #####\n", currentUsage->nb_value);
    switch (currentUsage->type) {
      case BUTTON_PAGE_USAGE:
      {
        int start = currentUsage->begin;
        int stop = currentUsage->end;
+       int offset = currentUsage->offset;
        for (int i = start; i<stop; i++) {
-         TU_LOG1("Offset goes to %d\n", currentUsage->offset);
-         event->begin = currentUsage->offset;
-         event->end = currentUsage->offset+1;
+         PARSER_LOG("Offset goes to %d\n", offset);
+         event->begin = offset;
+         event->end = offset+1;
          event->key = i;
-         currentUsage->offset += currentUsage->size;
-         TU_LOG1("Generate button %d from %d to %d\n", event->key, event->begin, event->end );
+         offset += currentUsage->size;
+         PARSER_LOG("Generate button %d from %d to %d\n", event->key, event->begin, event->end );
          mapping->nb_events++;
          event = &mapping->events[mapping->nb_events];
        }
@@ -76,25 +79,45 @@ static void addUsage(usage *currentUsage, hid_mapping* mapping) {
      break;
     case BUTTON_USAGE:
     {
-        currentUsage->offset += currentUsage->size;
-        if ((currentUsage->value >= HID_X) && (currentUsage->value <= HID_HAT_SWITCH)) {
-          TU_LOG1("Detected Axis is %x\n", currentUsage->value);
-        } else {
-          if (currentUsage->value == 0x0)
-            TU_LOG1("Undefined usage\n");
-          else
-            TU_LOG1("Unknown Usage (0x%x)\n", currentUsage->value);
+        int offset = currentUsage->offset;
+        for (int i = 0; i<currentUsage->nb_value; i++) {
+          if ((currentUsage->value[i] >= HID_X) && (currentUsage->value[i] <= HID_HAT_SWITCH)) {
+            PARSER_LOG("Detected Axis is %x\n", currentUsage->value[i]);
+            bool replaced = false;
+            for (int j = 0; j<mapping->nb_events; j++) {
+              hid_event* testevent = &mapping->events[j];
+              if (testevent->key == currentUsage->value[i]) {
+                event = testevent;
+                replaced = true;
+              }
+            }
+            //Last axis is the good one
+            event->begin = offset;
+            event->end = offset+currentUsage->size;
+            event->shift = currentUsage->size - 8; //3DO expect 0..255 values
+            event->key = currentUsage->value[i];
+            if (!replaced) mapping->nb_events++;
+            event = &mapping->events[mapping->nb_events];
+          } else {
+            if (currentUsage->value[i] == 0x0)
+            PARSER_LOG("Undefined usage\n");
+            else
+            PARSER_LOG("Unknown Usage (0x%x)\n", currentUsage->value[i]);
+          }
+          offset += currentUsage->size;
         }
+        currentUsage->nb_value = 0;
     }
     break;
     default:
     break;
   }
-  TU_LOG1("######### Offset is %d\n", currentUsage->offset);
+  currentUsage->offset += currentUsage->size * currentUsage->count;
+  PARSER_LOG("######### Offset is %d\n", currentUsage->offset);
   currentUsage->type = UNKNOWN_USAGE;
 }
 
-void parse_hid_descriptor(uint8_t const* desc_report, uint16_t desc_len, hid_mapping* mapping)
+int parse_hid_descriptor(uint8_t const* desc_report, uint16_t desc_len, hid_controller* ctrl)
 {
   uint idx = 0;
   uint8_t size = 0;
@@ -107,7 +130,11 @@ void parse_hid_descriptor(uint8_t const* desc_report, uint16_t desc_len, hid_map
   uint max = 0;
   uint nb = 0;
   int axis = 0;
+  int level = 0;
   int currentAxisSize[HID_HAT_SWITCH-HID_X+1];
+  input_type currentType;
+
+  hid_mapping *mapping = &ctrl->mapping[ctrl->nb_HID];
 
   usage HIDUsage = {0};
 
@@ -121,29 +148,36 @@ void parse_hid_descriptor(uint8_t const* desc_report, uint16_t desc_len, hid_map
     if (size == 0) {
       switch(tag) {
         case HID_POP_TAG:
-          addUsage(currentUsage, mapping);
+        {
           usage *prev = currentUsage->prev;
           prev->offset = currentUsage->offset;
           prev->next = NULL;
           free(currentUsage);
           currentUsage = prev;
-          TU_LOG1("Usage Pop\n");
+          PARSER_LOG("Usage Pop\n");
+        }
         break;
-        case HID_PUSH_TAG:{
+        case HID_PUSH_TAG:
+        {
           usage *next = (usage*)calloc(1, sizeof(usage));
           next->offset = currentUsage->offset;
           currentUsage->next = next;
           next->prev = currentUsage;
           currentUsage=next;
-          TU_LOG1("Usage Push\n");
+          PARSER_LOG("Usage Push\n");
         }
         break;
         case HID_END_COLLECTION_TAG:
-          addUsage(currentUsage, mapping);
-          TU_LOG1("Usage End Collection\n");
+          PARSER_LOG("Usage End Collection #### %d ####\n", level);
+          level--;
+          if (level == 0) {
+            ctrl->nb_HID++;
+            mapping = &ctrl->mapping[ctrl->nb_HID];
+            memset(currentUsage, 0, sizeof(usage));
+          }
           break;
         default:
-          TU_LOG1("unknown tag 0x%x with null size\n", tag);
+          PARSER_LOG("unknown tag 0x%x with null size\n", tag);
       }
     } else {
       val = read_from_desc(&desc_report[idx],size);
@@ -152,82 +186,96 @@ void parse_hid_descriptor(uint8_t const* desc_report, uint16_t desc_len, hid_map
         case HID_USAGE_TAG:
           switch(val) {
             case HID_GENERIC_DESKTOP_CONTROLS:
-              TU_LOG1("Generic Desktop controls\n");
+              PARSER_LOG("Generic Desktop controls\n");
               break;
             case HID_JOYSTICK_USAGE:
-              mapping->type = TYPE_JOYSTICK;
-              TU_LOG1("Joystick HID\n");
+              currentType = TYPE_JOYSTICK;
+              PARSER_LOG("Joystick HID\n");
               break;
             case HID_JOYPAD_USAGE:
-              mapping->type = TYPE_JOYPAD;
-              TU_LOG1("Joypad HID\n");
+              currentType = TYPE_JOYPAD;
+              PARSER_LOG("Joypad HID\n");
               break;
             case HID_MOUSE_USAGE:
-              mapping->type = TYPE_MOUSE;
-              TU_LOG1("Mouse HID\n");
+              currentType = TYPE_MOUSE;
+              PARSER_LOG("Mouse HID\n");
               break;
             case HID_BUTTON_PAGE:
-              TU_LOG1("Got a button interface %d buttons\n", currentUsage->end-currentUsage->begin);
+              PARSER_LOG("Got a button interface %d buttons\n", currentUsage->end-currentUsage->begin);
               currentUsage->type = BUTTON_PAGE_USAGE;
               break;
             case HID_VENDOR_PAGE:
-              TU_LOG1("Vendor Page\n", nb);
+              PARSER_LOG("Vendor Page\n", nb);
               break;
             default:
               if (type == HID_TYPE_LOCAL) {
                 // axis
-                  TU_LOG1("axis 0x%x\n", val);
+                  PARSER_LOG("axis 0x%x\n", val);
                   currentUsage->type = BUTTON_USAGE;
-                  currentUsage->value = val;
-                  addUsage(currentUsage, mapping);
+                  currentUsage->value[currentUsage->nb_value++] = val;
               } else {
-                TU_LOG1("Unknow usage tag 0x%x\n", val);
+                PARSER_LOG("Unknow usage tag 0x%x\n", val);
               }
           }
         break;
         case HID_COLLECTION_TAG:
-          TU_LOG1("Got a %s collection\n", (val==HID_APPLICATION_COLLECTION)?"Application":(val==HID_LOGICAL_COLLECTION)?"Logical":"unknown");
+          PARSER_LOG("Collection (%s) level %d\n", (val==HID_APPLICATION_COLLECTION)?"Application":(val==HID_LOGICAL_COLLECTION)?"Logical":"unknown", level);
+          level++;
           break;
         case HID_REPORT_COUNT_TAG:
-          TU_LOG1("report Count %d\n", val);
-          currentUsage->count = val;
+          if (type == HID_TYPE_GLOBAL) {
+            PARSER_LOG("report Count %d\n", val);
+            currentUsage->count = val;
+          } else {
+            PARSER_LOG("Input (Sata, Var, Abs) 0x%x\n", val);
+            addUsage(currentUsage, mapping);
+          }
           break;
         case HID_REPORT_SIZE_TAG:
-          TU_LOG1("report Size %d\n", val);
+          PARSER_LOG("report Size %d\n", val);
           currentUsage->size = val;
           break;
         case HID_LOGICAL_MINIMUM_TAG:
           if (type == HID_TYPE_GLOBAL)
-            TU_LOG1("logical min %d\n", val);
+            PARSER_LOG("logical min %d\n", val);
           if (type == HID_TYPE_LOCAL) {
-            TU_LOG1("usage min %d\n", val);
+            PARSER_LOG("usage min %d\n", val);
             currentUsage->begin = val-1;
           }
           break;
         case HID_LOGICAL_MAXIMUM_TAG:
           if (type == HID_TYPE_GLOBAL)
-            TU_LOG1("logical max %d\n", val);
+            PARSER_LOG("logical max %d\n", val);
           if (type == HID_TYPE_LOCAL) {
-            TU_LOG1("usage max %d\n", val);
+            PARSER_LOG("usage max %d\n", val);
             currentUsage->end = val;
           }
           break;
         case HID_PHYSICAL_MINIMUM_TAG:
-          TU_LOG1("physical min %d\n", val);
+          PARSER_LOG("physical min %d\n", val);
           break;
         case HID_PHYSICAL_MAXIMUM_TAG:
-          TU_LOG1("physical max %d\n", val);
+          PARSER_LOG("physical max %d\n", val);
           break;
         case HID_INPUT_TAG:
-          TU_LOG1("Input (Sata, Var, Abs) 0x%x\n", val);
+          if (type == HID_TYPE_GLOBAL) {
+            PARSER_LOG("Report Id 0x%x\n", val);
+            mapping->index = val;
+            ctrl->has_index = true;
+            currentUsage->offset += 8;
+          } else {
+            PARSER_LOG("Input (Sata, Var, Abs) 0x%x\n", val);
+            mapping->type = currentType; //Type is only valid if there was at least an input in the report
+            addUsage(currentUsage, mapping);
+          }
           break;
         case HID_UNIT_TAG:
-          TU_LOG1("Unit 0x%x\n", val);
+          PARSER_LOG("Unit 0x%x\n", val);
           break;
         default:
-          TU_LOG1("unknown tag 0x%x with val 0x%x\n", tag, val);
+          PARSER_LOG("unknown tag 0x%x with val 0x%x\n", tag, val);
       }
     }
   }
-  addUsage(currentUsage, mapping);
+  return idx;
 }

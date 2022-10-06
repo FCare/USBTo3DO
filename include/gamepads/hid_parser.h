@@ -46,6 +46,7 @@
 
 
 #define NB_EVENT_MAX 64
+#define NB_HID_MAX 4
 
 typedef enum{
   TYPE_NONE = 0,
@@ -77,15 +78,55 @@ typedef struct {
   uint8_t begin;
   uint8_t end;
   event_key key;
-  float conversion;
+  int8_t shift;
 } hid_event;
 
 typedef struct {
   input_type type;
+  int index;
   uint8_t nb_events;
   hid_event events[NB_EVENT_MAX];
 } hid_mapping;
 
+typedef struct {
+  uint8_t ABS_X;
+  uint8_t ABS_Y;
+  uint8_t ABS_Z;
+  uint8_t ABS_RX;
+  uint8_t ABS_RY;
+  uint8_t ABS_RZ;
+  uint8_t SLIDER;
+  uint8_t DIAL;
+  uint8_t WHEEL;
+  uint16_t HAT_UP : 1;
+  uint16_t HAT_DOWN : 1;
+  uint16_t HAT_RIGHT : 1;
+  uint16_t HAT_LEFT : 1;
+  uint16_t TRIGGER : 1;
+  uint16_t THUMB : 1;
+  uint16_t THUMB2 : 1;
+  uint16_t TOP : 1;
+  uint16_t TOP2 : 1;
+  uint16_t PINKIE : 1;
+  uint16_t BASE : 1;
+  uint16_t BASE2 : 1;
+  uint16_t BASE3 : 1;
+  uint16_t BASE4 : 1;
+  uint16_t BASE5 : 1;
+  uint16_t BASE6 : 1;
+} hid_buttons;
+
+typedef struct {
+  uint8_t nb_HID;
+  bool has_index;
+  bool isCompatible[NB_HID_MAX];
+  hid_mapping mapping[NB_HID_MAX];
+  hid_buttons buttons[NB_HID_MAX];
+  uint8_t axis_status[NB_HID_MAX];
+  uint8_t nbButtons[NB_HID_MAX];
+  bool hasHat[NB_HID_MAX];
+  uint8_t index;
+} hid_controller;
 
 typedef enum {
   UNKNOWN_USAGE = 0,
@@ -99,13 +140,14 @@ typedef struct usage_s{
   int end;
   int size;
   int count;
-  int value;
+  int value[HID_HAT_SWITCH-HID_X+1];
   int offset;
+  int nb_value;
   struct usage_s *next;
   struct usage_s *prev;
 } usage;
 
 
-extern void parse_hid_descriptor(uint8_t const* desc_report, uint16_t desc_len, hid_mapping* mapping);
+extern int parse_hid_descriptor(uint8_t const* desc_report, uint16_t desc_len, hid_controller* ctrl);
 
 #endif
