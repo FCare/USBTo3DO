@@ -41,6 +41,7 @@
 #include "thrustmaster.h"
 #include "logitech.h"
 #include "ps4.h"
+#include "sixaxis.h"
 
 //#define _DEBUG_MAPPER_
 
@@ -88,8 +89,8 @@ static hid_controller currentController[CFG_TUH_DEVICE_MAX] = {0};
 uint8_t *last_report[CFG_TUH_DEVICE_MAX] = {NULL};
 int16_t last_len[CFG_TUH_DEVICE_MAX] = {-1};
 
-#define NB_GAMEPAD_SUPPORTED 16
-#define NB_GAMEPAD_IN_LIST 16
+#define NB_GAMEPAD_SUPPORTED 17
+#define NB_GAMEPAD_IN_LIST 17
 static mapping_hid_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x0079, 0x0011, " SWITCH CO.,LTD.", map_retroBit, NULL, NULL}, //0079:0011 DragonRise Inc. Gamepad
   {0x0079, 0x0011, NULL, map_dragonRise, NULL, NULL}, //0079:0011 DragonRise Inc. Gamepad
@@ -107,6 +108,7 @@ static mapping_hid_3do map[NB_GAMEPAD_IN_LIST] = {
   {0x0f0d, 0x005e, NULL, map_ds4, NULL, NULL}, // Hori FC4
   {0x0f0d, 0x00ee, NULL, map_ds4, NULL, NULL}, // Hori PS4 Mini (PS4-099U)
   {0x1f4f, 0x1002, NULL, map_ds4, NULL, NULL},
+  {0x054c, 0x0268, NULL, map_sixaxis, mount_sixaxis, NULL},
   // {0x057e, 0x2009, NULL, map_8bitDo_SN30Pro, NULL, NULL}, //8bitDo  SN30 controler is seen as a nintendo switch controller
 };
 
@@ -229,6 +231,10 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
 
   is_supported_controller(dev_addr);
 
+  if (currentMapping != NULL)
+    if (currentMapping->mount != NULL)
+    currentMapping->mount(dev_addr, instance);
+
   if(is3DOCompatible(&currentController[instance])) {
     // request to receive report
     // tuh_hid_report_received_cb() will be invoked when report is available
@@ -241,19 +247,6 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
     }
   } else {
     TU_LOG1("HID descriptor is incompatible with 3DO\n");
-    // Sony DualShock 4 [CUH-ZCT2x]
-    // if (is_supported_controller(dev_addr))
-    // {
-    //   // request to receive report
-    //   // tuh_hid_report_received_cb() will be invoked when report is available
-    //   if ( !tuh_hid_receive_report(dev_addr, instance) )
-    //   {
-    //     TU_LOG1("Error: cannot request to receive report\r\n");
-    //   } else {
-    //     TU_LOG1("Report requested\n");
-    //   }
-    // }
-
   }
 
 }
@@ -423,6 +416,18 @@ static bool HIDMapper(uint8_t* report, uint8_t len, uint8_t instance, hid_contro
       case 11:
         ctrl->buttons[ctrl->index].BASE6 = (value & 0x1);
       break;
+      case 12:
+        ctrl->buttons[ctrl->index].BASE7 = (value & 0x1);
+      break;
+      case 13:
+        ctrl->buttons[ctrl->index].BASE8 = (value & 0x1);
+      break;
+      case 14:
+        ctrl->buttons[ctrl->index].BASE9 = (value & 0x1);
+      break;
+      case 15:
+        ctrl->buttons[ctrl->index].BASE10 = (value & 0x1);
+      break;
       default:
       break;
     }
@@ -501,6 +506,18 @@ static bool HIDMapper(uint8_t* report, uint8_t len, uint8_t instance, hid_contro
       break;
       case 11:
         if (ctrl->buttons[ctrl->index].BASE6) TU_LOG1("BASE6 ");
+      break;
+      case 12:
+        if (ctrl->buttons[ctrl->index].BASE7) TU_LOG1("BASE7 ");
+      break;
+      case 13:
+        if (ctrl->buttons[ctrl->index].BASE8) TU_LOG1("BASE8 ");
+      break;
+      case 14:
+        if (ctrl->buttons[ctrl->index].BASE9) TU_LOG1("BASE9 ");
+      break;
+      case 15:
+        if (ctrl->buttons[ctrl->index].BASE10) TU_LOG1("BASE10 ");
       break;
       default:
       break;

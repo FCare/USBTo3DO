@@ -42,6 +42,7 @@ src/controllers/psClassic.c
 src/controllers/thrustmaster.c
 src/controllers/logitech.c
 src/controllers/ps4.c
+src/controllers/sixaxis.c
 )
 
 pico_generate_pio_header(USBto3Do ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/sampling.pio)
