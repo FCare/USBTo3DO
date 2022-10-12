@@ -5,6 +5,8 @@
 
 #include "xbox360.h"
 
+// #define CTRL_DEBUG printf
+
 static controler_type controler_mode[MAX_CONTROLERS] = {NONE};
 static uint8_t controler_addr[MAX_CONTROLERS] = {0};
 static bool lastMode[MAX_CONTROLERS] = {0};

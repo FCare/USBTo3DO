@@ -86,7 +86,7 @@ void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc
   uint16_t vid, pid;
   bool newControllerAdded = true;
   tuh_vid_pid_get(dev_addr, &vid, &pid);
-  printf("VID %x PID %x\n", vid, pid);
+  TU_LOG1("VID %x PID %x\n", vid, pid);
   for (int i = 0; i<NB_GAMEPAD_SUPPORTED; i++) {
     if ((vid == map[i].vid) && (pid == map[i].pid)) {
       currentMapping = &map[i];
