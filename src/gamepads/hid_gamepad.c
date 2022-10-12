@@ -181,8 +181,9 @@ static bool is3DOCompatible(hid_controller *ctrl) {
     TU_LOG1("HID %d Offset 0x%x NbButtons = %d, hasHat = %d, nbAxis = %d\n", hid, mapping->index, ctrl->nbButtons[hid], ctrl->hasHat[hid], nbAxis);
     if (ctrl->nbButtons[hid] < 11) {
       int missing_buttons = 11 - ctrl->nbButtons[hid];
-      if (ctrl->axis_status[hid] & 0x3 == 0x3) ctrl->isCompatible[hid] = true;
-      if (ctrl->hasHat[hid] && (ctrl->nbButtons[hid] >= 7)) ctrl->isCompatible[hid] = true;
+      ctrl->isCompatible[hid] = true;
+      if (ctrl->axis_status[hid] & 0x3 != 0x3) ctrl->isCompatible[hid] = false;
+      if (!(ctrl->hasHat[hid] && (ctrl->nbButtons[hid] >= 7))) ctrl->isCompatible[hid] = false;
     } else ctrl->isCompatible[hid] = true;
     hasaCompatibleHID |= ctrl->isCompatible[hid];
   }
@@ -223,6 +224,7 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
   TU_LOG1("HID device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
   TU_LOG1("VID = %04x, PID = %04x\r\n", vid, pid);
   TU_LOG1("Product = %s, Manufacturer = %s\r\n", prod, manuf);
+  TU_LOG1("Protocol %d\n", tuh_hid_get_protocol(dev_addr, instance));
 
   TU_LOG1("Descriptor length %d :", desc_len);
   TU_LOG1_MEM(desc_report, desc_len, 2);
@@ -236,6 +238,10 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
     currentMapping->mount(dev_addr, instance);
 
   if(is3DOCompatible(&currentController[instance])) {
+    // if (tuh_hid_get_protocol(dev_addr, instance) == HID_PROTOCOL_BOOT) {
+    //   TU_LOG1("Set protocol to report mode\n");
+    //   tuh_hid_set_protocol(dev_addr, instance, HID_PROTOCOL_REPORT);
+    // }
     // request to receive report
     // tuh_hid_report_received_cb() will be invoked when report is available
     TU_LOG1("HID can be used with 3DO\n");

@@ -31,13 +31,12 @@ static void set_led(uint8_t dev_addr, uint8_t instance, led_state state) {
     buffer[0] = 0x01;
     buffer[1] = 0x03;
     buffer[2] = state; //rotate
-    // tuh_vendor_send_packet_out(dev_addr, instance, &buffer[0], 3);
+    tuh_vendor_send_packet_out(dev_addr, instance, &buffer[0], 3);
   }
 }
 
 static xbox360_report handle_xbox360_report(uint8_t const* report, uint16_t len) {
   xbox360_report status;
-printf("###len is%d\n", len);
     /* dpad as buttons (left, right, up, down) */
     status.BTN_TRIGGER_HAPPY1 = (report[2] & 0x04) != 0;
     status.BTN_TRIGGER_HAPPY2 = (report[2] & 0x08) != 0;

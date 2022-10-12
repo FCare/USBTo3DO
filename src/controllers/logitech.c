@@ -5,6 +5,39 @@
 #include "logitech.h"
 #include "hid_gamepad.h"
 #include "hid_parser.h"
+#include "xbox360_gamepads.h"
+
+
+static void set_led(uint8_t dev_addr, uint8_t instance, led_state state) {
+  uint8_t protocol;
+  tuh_vendor_protocol_get(dev_addr, instance, &protocol);
+  if (protocol == 1) {
+    TU_LOG1("Can set led\n");
+    uint8_t buffer[3] = {0x00};
+    buffer[0] = 0x01;
+    buffer[1] = 0x03;
+    buffer[2] = state; //rotate
+    tuh_vendor_send_packet_out(dev_addr, instance, &buffer[0], 3);
+  }
+}
+
+bool mount_logitech_f310(uint8_t dev_addr, uint8_t instance) {
+  set_led(dev_addr, instance, LED_TOP_LEFT_BLINK_AND_ON + instance%4);
+  return true; //Do not consider it is added. Wait for first report
+}
+static int mode[MAX_CONTROLERS] = {0};
+
+
+bool map_logitech_f310(uint8_t *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance, uint8_t *controler_id, controler_type* type, void** res) {
+    uint8_t * int_report = (uint8_t *)report_p;
+    *controler_id = instance;
+
+    *type =JOYPAD;
+
+    for (int i = 0; i<len; i++) printf("%x ,", int_report[i]);
+    printf("\n");
+    return true;
+}
 
 bool map_logitech_extreme_pro(uint8_t instance, uint8_t *id, controler_type *type, void **res, void *ctrl_v)
 {

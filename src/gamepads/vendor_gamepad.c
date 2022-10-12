@@ -31,32 +31,26 @@
 #include "3DO.h"
 #include "xbox360w.h"
 #include "xbox360.h"
+#include "logitech.h"
 
+
+// Only one controller at a time supported. What about a hub?
 //Code is made for only one USB port. Will not work in case of HUB plugged
 
  // 046d:c21d Logitech, Inc. F310 Gamepad [XInput Mode]
 
 
 static mapping_3do *currentMapping = NULL;
+static uint32_t samplingRate = 0;
+absolute_time_t lastReport;
+absolute_time_t lastTraceTime;
 
-
-
-bool map_logitech_f310(uint8_t *report_p, uint8_t len, uint8_t dev_addr,uint8_t instance, uint8_t *controler_id, controler_type* type, void** res) {
-    uint8_t * int_report = (uint8_t *)report_p;
-    *controler_id = instance;
-
-    *type =JOYPAD;
-
-    for (int i = 0; i<len; i++) printf("%x ,", int_report[i]);
-    printf("\n");
-    return true;
-}
 
 #define NB_GAMEPAD_SUPPORTED 3
 static mapping_3do map[NB_GAMEPAD_SUPPORTED] = {
   {0x045e, 0x028e, map_xbox360, mount_xbox360, led_xbox360}, //Xbox360 wired controller
   {0x045e, 0x2a9, map_xbox360w, mount_xbox360w, led_xbox360w}, //Xbox 360 wireless receiver
-  {0x046d, 0xc21d, map_logitech_f310, NULL, NULL}
+  {0x046d, 0xc21d, map_logitech_f310, mount_logitech_f310, NULL}
 };
 
 void vendor_gamepad_tick(void) {
@@ -66,8 +60,27 @@ void vendor_gamepad_tick(void) {
   }
 }
 
+bool get_next_report(uint8_t dev_addr, uint8_t instance)
+{
+  if (is_nil_time(lastReport)) {
+    lastReport = delayed_by_ms(get_absolute_time(),samplingRate);
+  } else {
+    absolute_time_t currentReport = get_absolute_time();
+    int64_t delay = absolute_time_diff_us(currentReport, lastReport); /*Right number shall be 1000000/75*/
+    if (delay>0) sleep_us(delay);
+    else lastReport = currentReport;
+    lastReport = delayed_by_ms(lastReport,samplingRate);
+  }
+  lastTraceTime = get_absolute_time();
+
+
+  return tuh_vendor_receive_packet_in(dev_addr, instance);
+}
+
 void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_report, uint16_t desc_len)
 {
+  lastReport = get_absolute_time();
+  // delayed_by_ms(lastReport, 4);
   _3do_joypad_report init = new3doPadReport();
   TU_LOG1("VENDOR device address = %d, instance = %d is mounted %x %x %d \r\n", dev_addr, instance, desc_report[0], desc_report[1], desc_len);
   uint16_t vid, pid;
@@ -77,20 +90,24 @@ void tuh_vendor_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc
   for (int i = 0; i<NB_GAMEPAD_SUPPORTED; i++) {
     if ((vid == map[i].vid) && (pid == map[i].pid)) {
       currentMapping = &map[i];
-      TU_LOG1("Xbox360 compatible detected\r\n");
+      samplingRate = vendor_interval_get(dev_addr, instance, 0); //Get interval for input
+      TU_LOG1("Xbox360 compatible detected - report every %u ms\r\n", samplingRate);
       break;
     }
   }
 
   if (currentMapping == NULL) return;
 
+  int64_t delay = absolute_time_diff_us(get_absolute_time(), lastReport); /*Right number shall be 1000000/75*/
+  if (delay>0) sleep_us(delay);
+  lastReport = get_absolute_time();
+  // delayed_by_ms(lastReport, 4);
   if (currentMapping->mount != NULL) {
     newControllerAdded = currentMapping->mount(dev_addr, instance);
   }
-  // uint8_t buffer[3] = {1,3,2};
-  // tuh_vendor_send_packet_out(dev_addr, instance, &buffer[0], 3); //start the input
-
-  if ( !tuh_vendor_receive_packet_in(dev_addr, instance) )
+  delay = absolute_time_diff_us(get_absolute_time(), lastReport); /*Right number shall be 1000000/75*/
+  if (delay>0) sleep_us(delay);
+  if ( !get_next_report(dev_addr, instance) )
   {
     TU_LOG1("Error: cannot request to receive report\r\n");
   }
@@ -104,13 +121,11 @@ void tuh_vendor_umount_cb(uint8_t dev_addr, uint8_t instance)
 void tuh_vendor_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len)
 {
 TU_LOG1("Report Received :!\r\n");
-for (int i=0; i< len; i++) TU_LOG1("0x%x ", report[i]);
-TU_LOG1("\r\n");
+TU_LOG1_MEM(report, len, 2);
 
 
 uint16_t vid, pid;
 tuh_vid_pid_get(dev_addr, &vid, &pid);
-TU_LOG1("Check PID / VID %x %x and %x %x\r\n", vid, currentMapping->vid, pid, currentMapping->pid);
 if (currentMapping == NULL) return;
 if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
   uint8_t id;
@@ -130,9 +145,8 @@ if ((currentMapping->vid == vid) &&  (currentMapping->pid == pid)) {
   if(newReport != NULL) free(newReport);
 }
 
-
   // continue to request to receive report
-  if ( !tuh_vendor_receive_packet_in(dev_addr, instance) )
+  if ( !get_next_report(dev_addr, instance) )
   {
     TU_LOG1("Error: cannot request to receive report\r\n");
   }
