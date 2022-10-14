@@ -127,10 +127,10 @@ bool map_xbox360w(uint8_t *report_p, uint8_t len, uint8_t dev_addr,uint8_t insta
   if (controler_mode[instance] == JOYPAD) {
     _3do_joypad_report *result = malloc(sizeof(_3do_joypad_report));
     *result = new3doPadReport();
-    result->up = report.BTN_TRIGGER_HAPPY3 || (report.ABS_Y > 22500) || (report.ABS_RY > 22500);
-    result->down = report.BTN_TRIGGER_HAPPY4 || (report.ABS_Y < -22500) || (report.ABS_RY < -22500);
-    result->left = report.BTN_TRIGGER_HAPPY1 || (report.ABS_X < -22500)|| (report.ABS_RX < -22500);
-    result->right = report.BTN_TRIGGER_HAPPY2 || (report.ABS_X > 22500)|| (report.ABS_RX > 22500);
+    result->up = report.BTN_TRIGGER_HAPPY3 || (report.ABS_Y > 10000) || (report.ABS_RY > 10000);
+    result->down = report.BTN_TRIGGER_HAPPY4 || (report.ABS_Y < -22500) || (report.ABS_RY < -10000);
+    result->left = report.BTN_TRIGGER_HAPPY1 || (report.ABS_X < -10000)|| (report.ABS_RX < -10000);
+    result->right = report.BTN_TRIGGER_HAPPY2 || (report.ABS_X > 10000)|| (report.ABS_RX > 10000);
     result->X = report.BTN_START;
     result->P = report.BTN_SELECT || report.BTN_Y;
     result->A = report.BTN_X;
@@ -184,10 +184,10 @@ bool map_xbox360w(uint8_t *report_p, uint8_t len, uint8_t dev_addr,uint8_t insta
     result->analog4 = ((d_pos & 0x0F)<<4) | 0x2;
 
     result->FIRE = report.BTN_Y;
-    result->up = report.BTN_TRIGGER_HAPPY3 || (report.ABS_RY > 22500);
-    result->down = report.BTN_TRIGGER_HAPPY4 || (report.ABS_RY < -22500);
-    result->left = report.BTN_TRIGGER_HAPPY1 || (report.ABS_RX < -22500);
-    result->right = report.BTN_TRIGGER_HAPPY2 || (report.ABS_RX > 22500);
+    result->up = report.BTN_TRIGGER_HAPPY3 || (report.ABS_RY > 10000);
+    result->down = report.BTN_TRIGGER_HAPPY4 || (report.ABS_RY < -10000);
+    result->left = report.BTN_TRIGGER_HAPPY1 || (report.ABS_RX < -10000);
+    result->right = report.BTN_TRIGGER_HAPPY2 || (report.ABS_RX > 10000);
     result->X = report.BTN_START;
     result->P = report.BTN_SELECT;
     result->A = report.BTN_X;
