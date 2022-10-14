@@ -56,7 +56,7 @@ static bool get_header(uint8_t const* desc_report, uint8_t *tag, uint8_t *type, 
   return true;
 }
 
-static void addUsage(usage *currentUsage, hid_mapping* mapping) {
+static void addUsage(usage *currentUsage, hid_mapping* mapping, uint tag) {
   hid_event* event = &mapping->events[mapping->nb_events];
   PARSER_LOG("####Build event %d #####\n", currentUsage->nb_value);
    switch (currentUsage->type) {
@@ -89,12 +89,18 @@ static void addUsage(usage *currentUsage, hid_mapping* mapping) {
               if (testevent->key == currentUsage->value[i]) {
                 event = testevent;
                 replaced = true;
+                event->relative = false;
               }
             }
             //Last axis is the good one
             event->begin = offset;
             event->end = offset+currentUsage->size;
             event->shift = currentUsage->size - 8; //3DO expect 0..255 values
+            if (tag & 0x4) {
+              //Relative coordinates need to be read as
+              PARSER_LOG("Relative value!\n");
+              event->relative = true;
+            }
             event->key = currentUsage->value[i];
             if (!replaced) mapping->nb_events++;
             event = &mapping->events[mapping->nb_events];
@@ -228,7 +234,7 @@ int parse_hid_descriptor(uint8_t const* desc_report, uint16_t desc_len, hid_cont
             currentUsage->count = val;
           } else {
             PARSER_LOG("Input (Sata, Var, Abs) 0x%x\n", val);
-            addUsage(currentUsage, mapping);
+            addUsage(currentUsage, mapping, val);
           }
           break;
         case HID_REPORT_SIZE_TAG:
@@ -266,7 +272,7 @@ int parse_hid_descriptor(uint8_t const* desc_report, uint16_t desc_len, hid_cont
           } else {
             PARSER_LOG("Input (Sata, Var, Abs) 0x%x\n", val);
             mapping->type = currentType; //Type is only valid if there was at least an input in the report
-            addUsage(currentUsage, mapping);
+            addUsage(currentUsage, mapping, val);
           }
           break;
         case HID_UNIT_TAG:

@@ -10,6 +10,7 @@
 #include "output.pio.h"
 
 #include "3DO.h"
+#include "tusb.h"
 
 //Missing dynammic allocation of controllers
 
@@ -116,6 +117,15 @@ void core1_entry() {
   }
 }
 
+static void currentReportDone(uint8_t instance) {
+  if (currentReport[instance][0] == 0x49) {
+    //Mouse report - Clear relative displacement to avoid continuous move
+    currentReport[instance][1] &= 0xF0;
+    currentReport[instance][2] = 0x00;
+    currentReport[instance][3] = 0x00;
+  }
+}
+
 // pio0 interrupt handler
 void on_pio0_irq() {
   updateReport = true;
@@ -129,6 +139,7 @@ void on_pio0_irq() {
   int totalReportSize = 0;
   for (int i = 0; i<max_usb_controller; i++) {
     memcpy(&controler_buffer[totalReportSize], &(currentReport[i][0]), currentReportSize[i]);
+    currentReportDone(i);
     totalReportSize += currentReportSize[i];
   }
   startDMA(CHAN_OUTPUT, &controler_buffer[0], 201);
@@ -184,6 +195,18 @@ void update_3do_joystick(_3do_joystick_report report, uint8_t instance) {
   max_usb_controller = (max_usb_controller < (instance+1))?(instance+1):max_usb_controller;
 }
 
+void update_3do_mouse(_3do_mouse_report report, uint8_t instance) {
+  if (instance >= MAX_CONTROLERS) {
+    printf("Instance %d is more than %d\n", instance, MAX_CONTROLERS);
+    return;
+  }
+  memcpy(&(currentReport[instance][0]), &report, 4);
+  TU_LOG1_MEM(&report, 4, 2);
+  currentReportSize[instance] = 4;
+  deviceAttached[instance] = true;
+  max_usb_controller = (max_usb_controller < (instance+1))?(instance+1):max_usb_controller;
+}
+
 _3do_joypad_report new3doPadReport() {
   _3do_joypad_report report;
   report.id = 0b100;
@@ -200,3 +223,8 @@ _3do_joystick_report new3doStickReport() {
   return report;
 }
 
+_3do_mouse_report new3doMouseReport() {
+  _3do_mouse_report report;
+  report.id = 0x49;
+  return report;
+}

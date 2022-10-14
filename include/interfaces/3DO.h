@@ -51,10 +51,26 @@ uint8_t X     : 1;
 uint8_t P     : 1;
 } _3do_joystick_report;
 
+typedef struct {
+uint8_t id;
+
+uint8_t dy_up     : 4;
+uint8_t shift    : 1;
+uint8_t right    : 1;
+uint8_t middle   : 1;
+uint8_t left     : 1;
+
+uint8_t dx_up     : 2;
+uint8_t dy_low    : 6;
+
+uint8_t dx_low;
+} _3do_mouse_report;
+
 typedef enum{
   NONE = 0,
   JOYPAD,
   JOYSTICK,
+  MOUSE,
 } controler_type;
 
 typedef bool (*hid_mapper)(uint8_t instance, uint8_t *id, controler_type *type, void **res, void *ctrl);
@@ -84,6 +100,9 @@ typedef struct {
 
  extern void update_3do_joystick(_3do_joystick_report report, uint8_t instance);
  extern _3do_joystick_report new3doStickReport();
+
+ extern void update_3do_mouse(_3do_mouse_report report, uint8_t instance);
+ extern _3do_mouse_report new3doMouseReport();
 
  #define CLK_PIN 2 // Clk from 3do
  #define DATA_OUT_PIN 3 // Data to 3do

@@ -79,6 +79,7 @@ typedef struct {
   uint8_t end;
   event_key key;
   int8_t shift;
+  bool relative;
 } hid_event;
 
 typedef struct {

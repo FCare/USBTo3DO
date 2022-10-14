@@ -174,17 +174,30 @@ static bool is3DOCompatible(hid_controller *ctrl) {
         ctrl->hasHat[hid] = true;;
       } else ctrl->nbButtons[hid]++;
     }
-
     for (int i=0; i<8; i++) {
       nbAxis += (ctrl->axis_status[hid]>>i)&0x1;
     }
-    TU_LOG1("HID %d Offset 0x%x NbButtons = %d, hasHat = %d, nbAxis = %d\n", hid, mapping->index, ctrl->nbButtons[hid], ctrl->hasHat[hid], nbAxis);
-    if (ctrl->nbButtons[hid] < 11) {
-      int missing_buttons = 11 - ctrl->nbButtons[hid];
-      ctrl->isCompatible[hid] = true;
-      if (ctrl->axis_status[hid] & 0x3 != 0x3) ctrl->isCompatible[hid] = false;
-      if (!(ctrl->hasHat[hid] && (ctrl->nbButtons[hid] >= 7))) ctrl->isCompatible[hid] = false;
-    } else ctrl->isCompatible[hid] = true;
+    TU_LOG1("HID %d Type %d Offset 0x%x NbButtons = %d, hasHat = %d, nbAxis = %d\n", hid, mapping->type, mapping->index, ctrl->nbButtons[hid], ctrl->hasHat[hid], nbAxis);
+    switch(mapping->type) {
+      case TYPE_JOYPAD:
+      case TYPE_JOYSTICK:
+        TU_LOG1("JoyPad/Joystick report %d\n",((ctrl->nbButtons[hid] >=3) && (nbAxis >= 2)));
+      if (ctrl->nbButtons[hid] < 11) {
+        int missing_buttons = 11 - ctrl->nbButtons[hid];
+        ctrl->isCompatible[hid] = true;
+        if (ctrl->axis_status[hid] & 0x3 != 0x3) ctrl->isCompatible[hid] = false;
+        if (!(ctrl->hasHat[hid] && (ctrl->nbButtons[hid] >= 7))) ctrl->isCompatible[hid] = false;
+      } else ctrl->isCompatible[hid] = true;
+      break;
+      case TYPE_MOUSE:
+        TU_LOG1("Mouse report %d\n",((ctrl->nbButtons[hid] >=3) && (nbAxis >= 2)));
+        ctrl->isCompatible[hid] = ((ctrl->nbButtons[hid] >=3) && (nbAxis >= 2));
+      break;
+      default:
+        ctrl->isCompatible[hid] = false;
+      break;
+    }
+    TU_LOG1("hasaCompatibleHID %d %d\n", hasaCompatibleHID, ctrl->isCompatible[hid]);
     hasaCompatibleHID |= ctrl->isCompatible[hid];
   }
   return hasaCompatibleHID;
@@ -213,6 +226,7 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
   uint8_t prod[255];
   int idx = 0;
 
+  TU_LOG1("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Mount %d %d\n", dev_addr, instance);
   last_len[instance] = -1;
   if (last_report[instance] != NULL) free(last_report[instance]);
   last_report[instance] = NULL;
@@ -226,7 +240,7 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
   TU_LOG1("Product = %s, Manufacturer = %s\r\n", prod, manuf);
   TU_LOG1("Protocol %d\n", tuh_hid_get_protocol(dev_addr, instance));
 
-  TU_LOG1("Descriptor length %d :", desc_len);
+  TU_LOG1("Descriptor length %d :\n", desc_len);
   TU_LOG1_MEM(desc_report, desc_len, 2);
 
   parse_hid_descriptor(desc_report, desc_len, &currentController[instance]);
@@ -237,7 +251,10 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
     if (currentMapping->mount != NULL)
     currentMapping->mount(dev_addr, instance);
 
+
+    TU_LOG1("Test compatibility %d\n", instance);
   if(is3DOCompatible(&currentController[instance])) {
+
     // if (tuh_hid_get_protocol(dev_addr, instance) == HID_PROTOCOL_BOOT) {
     //   TU_LOG1("Set protocol to report mode\n");
     //   tuh_hid_set_protocol(dev_addr, instance, HID_PROTOCOL_REPORT);
@@ -254,7 +271,7 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
   } else {
     TU_LOG1("HID descriptor is incompatible with 3DO\n");
   }
-
+TU_LOG1("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Mount %d %d DONE!!!!!!!!!!!!!!\n", dev_addr, instance);
 }
 
 // Invoked when device with hid interface is un-mounted
@@ -268,33 +285,36 @@ void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance)
 }
 
 static bool HIDMapper(uint8_t* report, uint8_t len, uint8_t instance, hid_controller *ctrl) {
-
   bool processReport = false;
   int8_t* last_report_to_test = NULL;
   hid_buttons last_buttons;
   uint8_t id = 0;
-
   if (last_len[instance] == -1) {
     last_report[instance] = (uint8_t*)calloc(ctrl->has_index?ctrl->nb_HID:1, len);
     last_len[instance] = len;
   }
-
   last_report_to_test = &last_report[instance][0];
   if (ctrl->has_index){
     id = report[0];
     ctrl->index = id-1;
     last_report_to_test = &last_report[instance][(ctrl->index)*len];
+  } else {
+    ctrl->index = id;
   }
   processReport |= (memcmp(report, last_report_to_test, len) != 0);
 
-
-  if (!processReport) return false;
-  if (!ctrl->isCompatible[ctrl->index]) return false;
-
-  TU_LOG2("Got a report Controller[%d] %d\n", instance, id);
-  TU_LOG2_MEM(report, len, 2);
-  TU_LOG2_MEM(last_report_to_test, len, 2);
-
+  if (!processReport && (ctrl->mapping[ctrl->index].type <= TYPE_JOYPAD)) {
+    TU_LOG1("Same report\n");
+    return false;
+  }
+  processReport |= (memcmp(report, last_report_to_test, len) != 0);
+  if (!ctrl->isCompatible[ctrl->index]){
+    TU_LOG1("Not compatible %d\n", ctrl->index);
+    return false;
+  }
+  // TU_LOG1("Got a report Controller[%d] %d\n", instance, id);
+  // TU_LOG1_MEM(report, len, 2);
+  // TU_LOG1_MEM(last_report_to_test, len, 2);
 
   memcpy(last_report_to_test, report, len);
 
@@ -319,11 +339,15 @@ static bool HIDMapper(uint8_t* report, uint8_t len, uint8_t instance, hid_contro
       uint8_t bit = (byte>>(j%8))&0x1;
       value |= (bit << (j - ev->begin));
     }
-    // TU_LOG1("Event %d [%d,%d] got 0x%x => Key 0x%x %d\n", i, ev->begin, ev->end, value, ev->key, ev->shift);
-    if (ev->end-ev->begin>=8)
-      shifted_value = value >> ((ev->end-ev->begin)-8);
-    else
-      shifted_value = value << (8-(ev->end-ev->begin));
+    TU_LOG1("Event %d [%d,%d] got 0x%x => Key 0x%x %d\n", i, ev->begin, ev->end, value, ev->key, ev->shift);
+    if (!ev->relative) {
+      if (ev->end-ev->begin>=8)
+        shifted_value = value >> ((ev->end-ev->begin)-8);
+      else
+        shifted_value = value << (8-(ev->end-ev->begin));
+    } else {
+      shifted_value = value & 0xFF;
+    }
     switch(ev->key) {
       case HID_X:
         ctrl->buttons[ctrl->index].ABS_X = (uint8_t)(shifted_value);
@@ -439,7 +463,10 @@ static bool HIDMapper(uint8_t* report, uint8_t len, uint8_t instance, hid_contro
     }
   }
 
-  if (memcmp(&last_buttons, &ctrl->buttons[ctrl->index], sizeof(hid_buttons)) == 0) return false;
+  if ((memcmp(&last_buttons, &ctrl->buttons[ctrl->index], sizeof(hid_buttons)) == 0)&& (ctrl->mapping[ctrl->index].type <= TYPE_JOYPAD)) {
+    TU_LOG1("Same buttons\n");
+    return false;
+  }
   TU_LOG1("EV: ");
   for (int i=0; i<mapping->nb_events; i++) {
     hid_event *ev = &mapping->events[i];
@@ -536,38 +563,77 @@ static bool HIDMapper(uint8_t* report, uint8_t len, uint8_t instance, hid_contro
 static void default3DOMapper(uint8_t instance, uint8_t *id, controler_type *type, void **res, hid_controller *ctrl)
 {
   //Default mapper only support joypad
-  _3do_joypad_report *result = malloc(sizeof(_3do_joypad_report));
-  *result = new3doPadReport();
-  *type = JOYPAD;
   *id = ctrl->index + instance;
-  hid_buttons *btn = & ctrl->buttons[ctrl->index];
+  switch(ctrl->mapping[ctrl->index].type) {
+    case TYPE_JOYPAD:
+    case TYPE_JOYSTICK:
+    {
+      _3do_joypad_report *result = malloc(sizeof(_3do_joypad_report));
+      *result = new3doPadReport();
+      *type = JOYPAD;
+      hid_buttons *btn = & ctrl->buttons[ctrl->index];
 
-  result->up = btn->ABS_Y <= 64;
-  result->down = btn->ABS_Y >= 196;
-  result->left = btn->ABS_X <= 64;
-  result->right = btn->ABS_X >= 196;
-  result->X = btn->TOP || btn->BASE5 || btn->BASE4;
-  result->P = btn->BASE3 || btn->BASE6 || btn->BASE3;
-  result->A = btn->TRIGGER;
-  result->B = btn->THUMB;
-  result->C = btn->THUMB2;
-  result->L = btn->TOP2 || btn->BASE || (btn->ABS_RX >= 54);
-  result->R = btn->PINKIE || btn->BASE2 || (btn->ABS_RX >= 64);
+      result->up = btn->ABS_Y <= 64;
+      result->down = btn->ABS_Y >= 196;
+      result->left = btn->ABS_X <= 64;
+      result->right = btn->ABS_X >= 196;
+      result->X = btn->TOP || btn->BASE5 || btn->BASE4;
+      result->P = btn->BASE3 || btn->BASE6 || btn->BASE3;
+      result->A = btn->TRIGGER;
+      result->B = btn->THUMB;
+      result->C = btn->THUMB2;
+      result->L = btn->TOP2 || btn->BASE || (btn->ABS_RX >= 54);
+      result->R = btn->PINKIE || btn->BASE2 || (btn->ABS_RX >= 64);
 
-  if (ctrl->hasHat[ctrl->index]) {
-    result->up |= btn->HAT_UP;
-    result->down |= btn->HAT_DOWN;
-    result->left |= btn->HAT_LEFT;
-    result->right |= btn->HAT_RIGHT;
+      if (ctrl->hasHat[ctrl->index]) {
+        result->up |= btn->HAT_UP;
+        result->down |= btn->HAT_DOWN;
+        result->left |= btn->HAT_LEFT;
+        result->right |= btn->HAT_RIGHT;
+      }
+
+      #ifdef _DEBUG_MAPPER_
+      //used for mapping debug
+      printf("(up, down, left, right) (%d %d %d %d) (X,P,A,B,C,L,R)(%d %d %d %d %d %d %d)\n",
+      result->up, result->down, result->left, result->right, result->X, result->P, result->A, result->B, result->C, result->L, result->R);
+      #endif
+      *res = (void *)(result);
+    }
+    break;
+    case TYPE_MOUSE:
+    {
+      _3do_mouse_report *result = malloc(sizeof(_3do_mouse_report));
+      *result = new3doMouseReport();
+      *type = MOUSE;
+      hid_buttons *btn = & ctrl->buttons[ctrl->index];
+
+      result->left = btn->TRIGGER;
+      result->middle = btn->THUMB2;
+      result->right = btn->THUMB;
+      result->shift = btn->TOP;
+      uint16_t dx = btn->ABS_X;
+      uint16_t dy = btn->ABS_Y;
+
+      if (dx & 0x80) dx |= 0x300;
+      if (dy & 0x80) dy |= 0x300;
+
+      result->dx_up = (dx>>8)&0x3;
+      result->dx_low = dx&0xFF;
+      result->dy_up = (dy>>4)&0xF;
+      result->dy_low = dy&0x3F;
+
+      #ifdef _DEBUG_MAPPER_
+      //used for mapping debug
+      printf("(left, middle, right, shift) (%d %d %d %d) (dX,dY)(%d %d)\n",
+      result->left, result->middle, result->right, result->shift, dx, dy);
+      #endif
+      *res = (void *)(result);
+    }
+    break;
+    default:
+      *res = NULL;
   }
 
-  #ifdef _DEBUG_MAPPER_
-    //used for mapping debug
-    printf("(up, down, left, right) (%d %d %d %d) (X,P,A,B,C,L,R)(%d %d %d %d %d %d %d)\n",
-          result->up, result->down, result->left, result->right, result->X, result->P, result->A, result->B, result->C, result->L, result->R);
-  #endif
-
-  *res = (void *)(result);
 
   return;
 }
@@ -594,6 +660,7 @@ void process_hid(uint8_t const* report, int8_t dev_addr, uint8_t instance, uint1
         id, padReport.down, padReport.up, padReport.right, padReport.left, padReport.A, padReport.B, padReport.C,
         padReport.P, padReport.X, padReport.R, padReport.L );
         update_3do_joypad(padReport, id);
+        if(newReport != NULL) free(newReport);
       }
       if (type == JOYSTICK) {
         _3do_joystick_report stickReport = *((_3do_joystick_report*)newReport);
@@ -605,20 +672,29 @@ void process_hid(uint8_t const* report, int8_t dev_addr, uint8_t instance, uint1
         stickReport.down, stickReport.up, stickReport.right, stickReport.left, stickReport.A, stickReport.B, stickReport.C,
         stickReport.P, stickReport.X, stickReport.R, stickReport.L, stickReport.FIRE);
         update_3do_joystick(*((_3do_joystick_report*)newReport), id);
+        if(newReport != NULL) free(newReport);
+      }
+      if (type == MOUSE) {
+        _3do_mouse_report mouseReport = *((_3do_mouse_report*)newReport);
+        update_3do_mouse(mouseReport, id);
+        if(newReport != NULL) free(newReport);
       }
     }
+  } else {
+    TU_LOG1("Was not mapped\n");
   }
-  if(newReport != NULL) free(newReport);
 }
 
 // Invoked when received report from device via interrupt endpoint
 void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len)
 {
+  TU_LOG2("Report length %d :\n", len);
+  TU_LOG2_MEM(report, len, 2);
 
   process_hid(report, dev_addr, instance, len);
   // continue to request to receive report
   if ( !tuh_hid_receive_report(dev_addr, instance) )
   {
-    TU_LOG1("Error: cannot request to receive report\r\n");
+    TU_LOG1("Error: cannot request to receive report\n");
   }
 }
