@@ -36,11 +36,11 @@ You can fork, build, even sell this if you wants to.
  - **Mouse**
    - a large set of USB mouse
  - **FlightStick**
-   - Thrustmaster T-Flight Hotas X
-   - Thrustmaster T-Flight Stick X
-   - Logitech Extreme 3D Pro
+   - Thrustmaster T-Flight Hotas X (https://shop.thrustmaster.com/fr_fr/t-flight-hotas-x.html)
+   - Thrustmaster T-Flight Stick X (https://www.thrustmaster.com/fr-fr/products/t-flight-stick-x)
+   - Logitech Extreme 3D Pro (https://www.logitechg.com/fr-fr/products/space/extreme-3d-pro-joystick.942-000031.html)
  - **Wheel**
-   - Thrustmaster T80
+   - Thrustmaster T80 (https://www.thrustmaster.com/fr-fr/products/t80-ferrari-488-gtb-edition)
  
 As of today, it does not support USB HUB. So if you are using a wired controller, you will need an adapter per wired controller. When you plug a USB adpater able to handle multiple controller (like wii adapater, saturn adapter or Xbox360 wireless receiver), then you can connect multiples controllers.
 
