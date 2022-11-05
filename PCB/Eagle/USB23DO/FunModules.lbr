@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE eagle SYSTEM "eagle.dtd">
+<eagle version="9.6.2">
+<drawing>
+<settings>
+<setting alwaysvectorfont="no"/>
+<setting verticaltext="up"/>
+</settings>
+<grid distance="50" unitdist="mil" unit="mil" style="lines" multiple="1" display="yes" altdistance="5" altunitdist="mil" altunit="mil"/>
+<layers>
+<layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
+<layer number="2" name="Route2" color="16" fill="1" visible="no" active="yes"/>
+<layer number="3" name="Route3" color="17" fill="1" visible="no" active="yes"/>
+<layer number="4" name="Route4" color="18" fill="1" visible="no" active="yes"/>
+<layer number="5" name="Route5" color="19" fill="1" visible="no" active="yes"/>
+<layer number="6" name="Route6" color="25" fill="1" visible="no" active="yes"/>
+<layer number="7" name="Route7" color="26" fill="1" visible="no" active="yes"/>
+<layer number="8" name="Route8" color="27" fill="1" visible="no" active="yes"/>
+<layer number="9" name="Route9" color="28" fill="1" visible="no" active="yes"/>
+<layer number="10" name="Route10" color="29" fill="1" visible="no" active="yes"/>
+<layer number="11" name="Route11" color="30" fill="1" visible="no" active="yes"/>
+<layer number="12" name="Route12" color="20" fill="1" visible="no" active="yes"/>
+<layer number="13" name="Route13" color="21" fill="1" visible="no" active="yes"/>
+<layer number="14" name="Route14" color="22" fill="1" visible="no" active="yes"/>
+<layer number="15" name="Route15" color="23" fill="1" visible="no" active="yes"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
+<layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
+<layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
+<layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="yes"/>
+<layer number="20" name="Dimension" color="24" fill="1" visible="yes" active="yes"/>
+<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="yes"/>
+<layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="26" name="bNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="28" name="bValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="29" name="tStop" color="7" fill="3" visible="no" active="yes"/>
+<layer number="30" name="bStop" color="7" fill="6" visible="no" active="yes"/>
+<layer number="31" name="tCream" color="7" fill="4" visible="no" active="yes"/>
+<layer number="32" name="bCream" color="7" fill="5" visible="no" active="yes"/>
+<layer number="33" name="tFinish" color="6" fill="3" visible="no" active="yes"/>
+<layer number="34" name="bFinish" color="6" fill="6" visible="no" active="yes"/>
+<layer number="35" name="tGlue" color="7" fill="4" visible="no" active="yes"/>
+<layer number="36" name="bGlue" color="7" fill="5" visible="no" active="yes"/>
+<layer number="37" name="tTest" color="7" fill="1" visible="no" active="yes"/>
+<layer number="38" name="bTest" color="7" fill="1" visible="no" active="yes"/>
+<layer number="39" name="tKeepout" color="4" fill="11" visible="yes" active="yes"/>
+<layer number="40" name="bKeepout" color="1" fill="11" visible="yes" active="yes"/>
+<layer number="41" name="tRestrict" color="4" fill="10" visible="yes" active="yes"/>
+<layer number="42" name="bRestrict" color="1" fill="10" visible="yes" active="yes"/>
+<layer number="43" name="vRestrict" color="2" fill="10" visible="yes" active="yes"/>
+<layer number="44" name="Drills" color="7" fill="1" visible="no" active="yes"/>
+<layer number="45" name="Holes" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="46" name="Milling" color="3" fill="1" visible="no" active="yes"/>
+<layer number="47" name="Measures" color="7" fill="1" visible="no" active="yes"/>
+<layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="49" name="Reference" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="88" name="SimResults" color="9" fill="1" visible="yes" active="yes"/>
+<layer number="89" name="SimProbes" color="9" fill="1" visible="yes" active="yes"/>
+<layer number="90" name="Modules" color="5" fill="1" visible="yes" active="yes"/>
+<layer number="91" name="Nets" color="2" fill="1" visible="yes" active="yes"/>
+<layer number="92" name="Busses" color="1" fill="1" visible="yes" active="yes"/>
+<layer number="93" name="Pins" color="2" fill="1" visible="yes" active="yes"/>
+<layer number="94" name="Symbols" color="4" fill="1" visible="yes" active="yes"/>
+<layer number="95" name="Names" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="96" name="Values" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="97" name="Info" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="98" name="Guide" color="6" fill="1" visible="yes" active="yes"/>
+</layers>
+<library>
+<packages>
+<package name="WAVESHARE_RP_2040_ZERO">
+<pad name="GP29" x="-19.05" y="0" drill="0.95" diameter="1.5" rot="R180"/>
+<pad name="GP28" x="-19.05" y="-2.54" drill="0.95" diameter="1.5" rot="R180"/>
+<pad name="GP27" x="-19.05" y="-5.08" drill="0.95" diameter="1.5"/>
+<pad name="GP26" x="-19.05" y="-7.62" drill="0.95" diameter="1.5"/>
+<pad name="GP15" x="-19.05" y="-10.16" drill="0.95" diameter="1.5"/>
+<pad name="GP14" x="-19.05" y="-12.7" drill="0.95" diameter="1.5"/>
+<pad name="GP9" x="-6.35" y="-12.7" drill="0.95" diameter="1.5"/>
+<pad name="GP10" x="-8.89" y="-12.7" drill="0.95" diameter="1.5"/>
+<pad name="GP11" x="-11.43" y="-12.7" drill="0.95" diameter="1.5"/>
+<pad name="GP12" x="-13.97" y="-12.7" drill="0.95" diameter="1.5"/>
+<pad name="GP13" x="-16.51" y="-12.7" drill="0.95" diameter="1.5"/>
+<pad name="GP8" x="-3.81" y="-12.7" drill="0.95" diameter="1.5"/>
+<pad name="GP7" x="-3.81" y="-10.16" drill="0.95" diameter="1.5"/>
+<pad name="GP6" x="-3.81" y="-7.62" drill="0.95" diameter="1.5"/>
+<pad name="GP5" x="-3.81" y="-5.08" drill="0.95" diameter="1.5"/>
+<pad name="GP4" x="-3.81" y="-2.54" drill="0.95" diameter="1.5"/>
+<pad name="GP3" x="-3.81" y="0" drill="0.95" diameter="1.5"/>
+<pad name="GP2" x="-3.81" y="2.54" drill="0.95" diameter="1.5"/>
+<pad name="GP1" x="-3.81" y="5.08" drill="0.95" diameter="1.5"/>
+<pad name="GP0" x="-3.81" y="7.62" drill="0.95" diameter="1.5"/>
+<pad name="3V3" x="-19.05" y="2.54" drill="0.95" diameter="1.5" shape="square"/>
+<pad name="GND" x="-19.05" y="5.08" drill="0.95" diameter="1.5" shape="square"/>
+<pad name="5V" x="-19.05" y="7.62" drill="0.95" diameter="1.5"/>
+<text x="-17.78" y="0" size="1.27" layer="25">RP2040-ZERO</text>
+<wire x1="-20.32" y1="8.89" x2="-20.32" y2="-13.97" width="0.127" layer="21"/>
+<wire x1="-20.32" y1="-13.97" x2="-2.54" y2="-13.97" width="0.127" layer="21"/>
+<wire x1="-2.54" y1="-13.97" x2="-2.54" y2="8.89" width="0.127" layer="21"/>
+<wire x1="-2.54" y1="8.89" x2="-20.32" y2="8.89" width="0.127" layer="21"/>
+</package>
+<package name="4WAYS_LEVEL_SHIFTER">
+<pad name="GND" x="-5.08" y="-1.27" drill="0.95" shape="square"/>
+<pad name="GND_1" x="5.08" y="-1.27" drill="0.95" shape="square"/>
+<pad name="LV" x="-5.08" y="1.27" drill="0.95" shape="square"/>
+<pad name="HV" x="5.08" y="1.27" drill="0.95" shape="square"/>
+<pad name="LV2" x="-5.08" y="3.81" drill="0.95"/>
+<pad name="LV1" x="-5.08" y="6.35" drill="0.95"/>
+<pad name="HV1" x="5.08" y="6.35" drill="0.95"/>
+<pad name="HV2" x="5.08" y="3.81" drill="0.95"/>
+<pad name="HV3" x="5.08" y="-3.81" drill="0.95"/>
+<pad name="HV4" x="5.08" y="-6.35" drill="0.95"/>
+<pad name="LV4" x="-5.08" y="-6.35" drill="0.95"/>
+<pad name="LV3" x="-5.08" y="-3.81" drill="0.95"/>
+<text x="-1.27" y="5.08" size="1.27" layer="25" rot="R270">LVL_SHIFT</text>
+<wire x1="-6.35" y1="7.62" x2="-6.35" y2="-7.62" width="0.127" layer="21"/>
+<wire x1="-6.35" y1="-7.62" x2="6.35" y2="-7.62" width="0.127" layer="21"/>
+<wire x1="6.35" y1="-7.62" x2="6.35" y2="7.62" width="0.127" layer="21"/>
+<wire x1="6.35" y1="7.62" x2="-6.35" y2="7.62" width="0.127" layer="21"/>
+<text x="-2.54" y="0" size="1.27" layer="21" rot="R90">LV</text>
+<text x="3.81" y="0" size="1.27" layer="21" rot="R90">HV</text>
+</package>
+</packages>
+<symbols>
+<symbol name="WAVESHARE_RP_2040_ZERO">
+<pin name="5V" x="-17.78" y="20.32" visible="pad" length="middle"/>
+<pin name="GND" x="-17.78" y="15.24" visible="pad" length="middle"/>
+<pin name="3V3" x="-17.78" y="10.16" visible="pad" length="middle"/>
+<pin name="GP29" x="-17.78" y="5.08" visible="pad" length="middle"/>
+<pin name="GP28" x="-17.78" y="0" visible="pad" length="middle"/>
+<pin name="GP27" x="-17.78" y="-5.08" visible="pad" length="middle"/>
+<pin name="GP26" x="-17.78" y="-10.16" visible="pad" length="middle"/>
+<pin name="GP15" x="-17.78" y="-15.24" visible="pad" length="middle"/>
+<pin name="GP14" x="-17.78" y="-20.32" visible="pad" length="middle"/>
+<pin name="GP13" x="-10.16" y="-27.94" visible="pad" length="middle" rot="R90"/>
+<pin name="GP12" x="-5.08" y="-27.94" visible="pad" length="middle" rot="R90"/>
+<pin name="GP11" x="0" y="-27.94" visible="pad" length="middle" rot="R90"/>
+<pin name="GP10" x="5.08" y="-27.94" visible="pad" length="middle" rot="R90"/>
+<pin name="GP9" x="10.16" y="-27.94" visible="pad" length="middle" rot="R90"/>
+<pin name="GP8" x="17.78" y="-20.32" visible="pad" length="middle" rot="R180"/>
+<pin name="GP7" x="17.78" y="-15.24" visible="pad" length="middle" rot="R180"/>
+<pin name="GP6" x="17.78" y="-10.16" visible="pad" length="middle" rot="R180"/>
+<pin name="GP5" x="17.78" y="-5.08" visible="pad" length="middle" rot="R180"/>
+<pin name="GP4" x="17.78" y="0" visible="pad" length="middle" rot="R180"/>
+<pin name="GP3" x="17.78" y="5.08" visible="pad" length="middle" rot="R180"/>
+<pin name="GP2" x="17.78" y="10.16" visible="pad" length="middle" rot="R180"/>
+<pin name="GP1" x="17.78" y="15.24" visible="pad" length="middle" rot="R180"/>
+<pin name="GP0" x="17.78" y="20.32" visible="pad" length="middle" rot="R180"/>
+<wire x1="-12.7" y1="22.86" x2="-12.7" y2="-22.86" width="0.254" layer="94"/>
+<wire x1="-12.7" y1="-22.86" x2="12.7" y2="-22.86" width="0.254" layer="94"/>
+<wire x1="12.7" y1="-22.86" x2="12.7" y2="22.86" width="0.254" layer="94"/>
+<wire x1="12.7" y1="22.86" x2="-12.7" y2="22.86" width="0.254" layer="94"/>
+</symbol>
+<symbol name="4WAYS_LEVEL_SHIFTER">
+<pin name="LV" x="-15.24" y="22.86" visible="pad" length="middle"/>
+<pin name="LV1" x="-15.24" y="17.78" visible="pad" length="middle"/>
+<pin name="LV2" x="-15.24" y="12.7" visible="pad" length="middle"/>
+<pin name="LV3" x="-15.24" y="7.62" visible="pad" length="middle"/>
+<pin name="LV4" x="-15.24" y="2.54" visible="pad" length="middle"/>
+<pin name="GND" x="-5.08" y="-5.08" visible="pad" length="middle" rot="R90"/>
+<pin name="HV4" x="5.08" y="2.54" visible="pad" length="middle" rot="R180"/>
+<pin name="HV3" x="5.08" y="7.62" visible="pad" length="middle" rot="R180"/>
+<pin name="HV2" x="5.08" y="12.7" visible="pad" length="middle" rot="R180"/>
+<pin name="HV1" x="5.08" y="17.78" visible="pad" length="middle" rot="R180"/>
+<pin name="HV" x="5.08" y="22.86" visible="pad" length="middle" rot="R180"/>
+<wire x1="-10.16" y1="25.4" x2="-10.16" y2="0" width="0.254" layer="94"/>
+<wire x1="-10.16" y1="0" x2="0" y2="0" width="0.254" layer="94"/>
+<wire x1="0" y1="0" x2="0" y2="25.4" width="0.254" layer="94"/>
+<wire x1="0" y1="25.4" x2="-10.16" y2="25.4" width="0.254" layer="94"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="WAVESHARE_RP_2040_ZERO">
+<gates>
+<gate name="G$1" symbol="WAVESHARE_RP_2040_ZERO" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="WAVESHARE_RP_2040_ZERO">
+<connects>
+<connect gate="G$1" pin="3V3" pad="3V3"/>
+<connect gate="G$1" pin="5V" pad="5V"/>
+<connect gate="G$1" pin="GND" pad="GND"/>
+<connect gate="G$1" pin="GP0" pad="GP0"/>
+<connect gate="G$1" pin="GP1" pad="GP1"/>
+<connect gate="G$1" pin="GP10" pad="GP10"/>
+<connect gate="G$1" pin="GP11" pad="GP11"/>
+<connect gate="G$1" pin="GP12" pad="GP12"/>
+<connect gate="G$1" pin="GP13" pad="GP13"/>
+<connect gate="G$1" pin="GP14" pad="GP14"/>
+<connect gate="G$1" pin="GP15" pad="GP15"/>
+<connect gate="G$1" pin="GP2" pad="GP2"/>
+<connect gate="G$1" pin="GP26" pad="GP26"/>
+<connect gate="G$1" pin="GP27" pad="GP27"/>
+<connect gate="G$1" pin="GP28" pad="GP28"/>
+<connect gate="G$1" pin="GP29" pad="GP29"/>
+<connect gate="G$1" pin="GP3" pad="GP3"/>
+<connect gate="G$1" pin="GP4" pad="GP4"/>
+<connect gate="G$1" pin="GP5" pad="GP5"/>
+<connect gate="G$1" pin="GP6" pad="GP6"/>
+<connect gate="G$1" pin="GP7" pad="GP7"/>
+<connect gate="G$1" pin="GP8" pad="GP8"/>
+<connect gate="G$1" pin="GP9" pad="GP9"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="4WAYS_LEVEL_SHIFTER">
+<gates>
+<gate name="G$1" symbol="4WAYS_LEVEL_SHIFTER" x="5.08" y="-12.7"/>
+</gates>
+<devices>
+<device name="" package="4WAYS_LEVEL_SHIFTER">
+<connects>
+<connect gate="G$1" pin="GND" pad="GND GND_1"/>
+<connect gate="G$1" pin="HV" pad="HV"/>
+<connect gate="G$1" pin="HV1" pad="HV1"/>
+<connect gate="G$1" pin="HV2" pad="HV2"/>
+<connect gate="G$1" pin="HV3" pad="HV3"/>
+<connect gate="G$1" pin="HV4" pad="HV4"/>
+<connect gate="G$1" pin="LV" pad="LV"/>
+<connect gate="G$1" pin="LV1" pad="LV1"/>
+<connect gate="G$1" pin="LV2" pad="LV2"/>
+<connect gate="G$1" pin="LV3" pad="LV3"/>
+<connect gate="G$1" pin="LV4" pad="LV4"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
+</drawing>
+</eagle>
