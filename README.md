@@ -66,8 +66,7 @@ Here is a picture of the v1.1 PCB:
 <img src="/PCB/Photos/PCB v1_1.jpg" alt="PCB V1.1" title="PCB v1.1"  width="50%">
 
 ## <a name="dedicated_mapping"></a>How to add a dedicated mapping
-In order to add a specifi mapping, you have to edit
-
+In order to add a specific mapping, you have to edit hid_gamepad.c or vendor_gamepad.c and add in the map array the VID, PID and corresponding mapping function. Once this is done, you have to compile a new FW and update the RP2040 device.
 
 ## How to compile
  - Tested on UBUNTU 20.04
@@ -79,6 +78,6 @@ In order to add a specifi mapping, you have to edit
  `cmake ../`  
  `make -j16`  
  
- then flash RP204 with the built uf2 file.
+ then flash RP2040 with the built uf2 file.
  
  
