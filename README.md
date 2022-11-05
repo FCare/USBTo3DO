@@ -27,12 +27,11 @@ You can fork, build, even sell this if you wants to.
    - Sixaxis PS3 controller (Wired) (https://en.wikipedia.org/wiki/Sixaxis)
    - DualShock4 PS4 controller (Wired) (https://fr.wikipedia.org/wiki/DualShock)
    - Xbox 360 wirless controllers using a USB PC receiver (https://aliexpress.com/item/1005004013649915.html)
-   - 8bitDo SN30 pro (https://www.8bitdo.com/sn30-pro-usb-gamepad/)
    - 8BitDo M30 controller (https://www.8bitdo.com/m30/)
    - Retrobit Saturn controller (https://retro-bit.com/sega-collaboration/#saturn2-4)
    - Classical WII controllers with USB adapter (https://www.mayflash.com/product/showproduct.php?id=21)
    - Orignial sega saturn controller with adapter (https://www.mayflash.com/product/showproduct.php?id=20)
-   - Known issues on 8bitDo USB wireless adapter2 / Logitech gamepad F310
+   - Known issues on 8bitDo USB wireless adapter2, Logitech gamepad F310 and 8bitDo SN30 pro (https://www.8bitdo.com/sn30-pro-usb-gamepad/)
  - **Mouse**
    - a large set of USB mouse
  - **FlightStick**
