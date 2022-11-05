@@ -53,7 +53,7 @@ In case you installed the daisy chain connector, you can plug other USB adaptors
 - [**Wheel**](https://www.youtube.com/watch?v=EjhhHNndm9Q)
 
 ## What is required
- - PCB as provided in this git project. (You can order to shops like JLCPCB using the gerber files provided)
+ - PCB as provided in this git project. (You can order to shops like [JLCPCB](https://jlcpcb.com) using the [gerber files provided](https://github.com/FCare/USBTo3DO/blob/release/PCB/Gerber/USB23DO_2022-11-05.zip)
  - One femelle DB9 connector (to connect to the 3do or to the previous controller)
  - One male DB9 (optional) to continue the controller daisy chain
  - One Waveshare rp2040 zero (https://www.waveshare.com/rp2040-zero.htm)
