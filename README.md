@@ -46,6 +46,12 @@ As of today, it does not support USB HUB. So if you are using a wired controller
 
 In case you installed the daisy chain connector, you can plug other USB adaptors or original controllers, Daisy chain will work.
 
+## Videos
+- [**D-Pad**](https://www.youtube.com/watch?v=yVEVkbPncLI&t=19)
+- [**Mouse**](https://www.youtube.com/watch?v=dmMzbSZ1rbM&t=14)
+- [**FlightStick**](https://www.youtube.com/watch?v=JpNO-n8_HC8&t=34)
+- [**Wheel**](https://www.youtube.com/watch?v=EjhhHNndm9Q)
+
 ## What is required
  - PCB as provided in this git project. (You can order to shops like JLCPCB using the gerber files provided)
  - One femelle DB9 connector (to connect to the 3do or to the previous controller)
