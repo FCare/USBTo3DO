@@ -37,8 +37,8 @@ bool map_t80_pc(uint8_t instance, uint8_t *id, controler_type *type, void **res,
   result->A = btn->TOP;
   result->B = btn->TRIGGER;
   result->C = btn->THUMB2;
-  result->L = btn->TOP2 || btn->BASE;
-  result->R = btn->PINKIE || btn->BASE2;
+  result->L = btn->TOP2;
+  result->R = btn->PINKIE;
 
 #ifdef _DEBUG_MAPPER_
   //used for mapping debug
@@ -46,7 +46,7 @@ bool map_t80_pc(uint8_t instance, uint8_t *id, controler_type *type, void **res,
   result->down, result->up, result->right, result->left, result->A, result->B, result->C,
   result->P, result->X, result->R, result->L, result->FIRE );
 
-  printf("X-axis %d Y-Axis %d Z-Axis %d\n", btn->ABS_X, btn->ABS_Y, btn->SLIDER);
+  printf("Angle %d Speed %d Throttle %d\n", angle, speed, throttle);
 #endif
   *res = (void *)(result);
 
