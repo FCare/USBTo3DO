@@ -9,6 +9,11 @@ Still support original 3DO controllers using daisy chain.
 The full project is delivered under MIT License.
 You can fork, build, even sell this if you wants to.
 
+## Need more info
+I may organize some batches for interested users which can not build it themselves.
+If you are interested, you can mail to usb23do@gmail.com
+Be sure that you can have one the controller listed here. Adding more controller is not guaranteed.
+
 ## Supported controllers
  - **D-Pad**
 	 - Any HID Gamepad/joystick class device shall work with a default mapping.
